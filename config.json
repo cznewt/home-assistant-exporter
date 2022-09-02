@@ -1,0 +1,22 @@
+{
+  "name": "Home Assistant Exporter",
+  "version": "1",
+  "slug": "home_assistant_exporter",
+  "description": "Full device/entity/state exporter",
+  "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
+  "startup": "application",
+  "boot": "auto",
+  "ingress": true,
+  "ingress_port": 8080,
+  "ingress_entry": "metrics",
+  "ingress_stream": true,
+  "hassio_api": true,
+  "homeassistant_api": true,
+  "hassio_role": "manager",
+  "init": false,
+  "options": {},
+  "schema": {},
+  "ports": {
+    "8080/tcp": 9123
+  }
+}

@@ -34,7 +34,7 @@ from .exceptions import (
 LOGGER = logging.getLogger(__package__)
 EVENT_STATE_CHANGED = "state_changed"
 
-IS_SUPERVISOR = os.environ.get("HASSIO_TOKEN") is not None
+IS_SUPERVISOR = os.environ.get("SUPERVISOR_TOKEN") is not None
 
 
 class HomeAssistantClient:
@@ -58,8 +58,8 @@ class HomeAssistantClient:
         self._entity_registry = {}
         self._area_registry = {}
         if not url and IS_SUPERVISOR:
-            self.ws_server_url = "ws://hassio/homeassistant/api/websocket"
-            self._token = None
+            self.ws_server_url = "ws://supervisor/homeassistant/api/websocket"
+            self._token = os.environ.get("SUPERVISOR_TOKEN")
         elif url and token:
             url = url.replace("http", "ws")
             if not url.endswith("/api/websocket"):

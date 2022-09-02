@@ -1,9 +1,4 @@
-Flask==1.1.2
 prometheus-client==0.14.1
-PyYAML==5.4
-#PyYAML==6.0
-Jinja2==3.0.3
-werkzeug==2.0.2
-itsdangerous==2.0.1
-
-# https://github.com/marcelveldt/python-hass-client/archive/refs/heads/master.zip
+aiohttp>=3.7.4; sys_platform == 'win32'
+aiohttp[speedups]>=3.7.4; sys_platform != 'win32'
+ujson>=4.0.2

@@ -17,7 +17,7 @@ metric = {}
 registry = CollectorRegistry()
 
 metric["hass_device_info"] = Gauge(
-    "device_info",
+    "hass_device",
     "Information about the device.",
     [
         "manufacturer",
@@ -43,9 +43,19 @@ def get_arguments() -> argparse.Namespace:
     )
     parser.add_argument("--debug", action="store_true", help="Log with debug level")
     parser.add_argument(
-        "url", type=str, help="URL of server, ie http://homeassistant:8123"
+        "url",
+        type=str,
+        help="URL of server, ie http://homeassistant:8123",
+        nargs="?",
+        const=None,
     )
-    parser.add_argument("token", type=str, help="Long Lived Token")
+    parser.add_argument(
+        "token",
+        type=str,
+        help="Long Lived Token",
+        nargs="?",
+        const=None,
+    )
     arguments = parser.parse_args()
     return arguments
 
