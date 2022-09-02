@@ -170,6 +170,18 @@ class HomeAssistantClient:
             raise NotConnected("Please call connect first.")
         return [value for key, value in self._states.items() if key.startswith(domain)]
 
+    def get_full_entity(self, entity_id: str):
+
+        entity = self.states.get(entity_id, {}) | self.entity_registry.get(
+            entity_id, {}
+        )
+
+        device_id = entity.get("device_id", None)
+        return entity | self.device_registry.get(device_id, {})
+
+    def get_all_entities(self) -> dict:
+        return {key: self.get_full_entity(key) for key, state in self.states.items()}
+
     def get_state(self, entity_id: str, attribute: str = "state") -> dict:
         """
         Get state(obj) of a Home Assistant entity.
