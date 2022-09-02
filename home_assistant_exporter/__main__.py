@@ -19,7 +19,18 @@ registry = CollectorRegistry()
 metric["hass_device_info"] = Gauge(
     "device_info",
     "Information about the device.",
-    ["manufacturer", "model", "sw_version", "hw_version", "id", "entity_id", "name"],
+    [
+        "manufacturer",
+        "model",
+        "sw_version",
+        "hw_version",
+        "id",
+        "entity_id",
+        "name",
+        "unit_of_measurement",
+        "state_class",
+        "device_class",
+    ],
     registry=registry,
 )
 
@@ -55,6 +66,8 @@ async def hello(request):
 
 
 def _get_labels(device):
+    attrs = device.get("attributes", {})
+    LOGGER.debug(device)
     return {
         "manufacturer": device.get("manufacturer", "unknown"),
         "model": device.get("model", "unknown"),
@@ -62,7 +75,12 @@ def _get_labels(device):
         "hw_version": device.get("hw_version", "unknown"),
         "id": device.get("id", "unknown"),
         "entity_id": device["entity_id"],
-        "name": device.get("name", "unknown"),
+        "name": device.get("name", attrs.get("friendly_name", "unknown")),
+        "unit_of_measurement": device.get(
+            "unit_of_measurement", attrs.get("unit_of_measurement", "unknown")
+        ),
+        "state_class": attrs.get("state_class", "unknown"),
+        "device_class": attrs.get("device_class", "unknown"),
     }
 
 
