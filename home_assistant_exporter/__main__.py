@@ -2,8 +2,11 @@
 import argparse
 import asyncio
 import logging
+from os import device_encoding
 import sys
 from aiohttp import web
+
+from datetime import datetime
 
 import aiohttp
 
@@ -13,26 +16,90 @@ from prometheus_client import generate_latest, CollectorRegistry
 
 LOGGER = logging.getLogger(__package__)
 
-metric = {}
-registry = CollectorRegistry()
+ALLOWED_DOMAINS = ['sensor', 'binary_sensor']
+FORBIDDEN_INTEGRATIONS = ['met', 'moon']
 
-metric["hass_device_info"] = Gauge(
-    "hass_device",
-    "Information about the device.",
-    [
-        "manufacturer",
-        "model",
-        "sw_version",
-        "hw_version",
-        "id",
-        "entity_id",
-        "name",
-        "unit_of_measurement",
-        "state_class",
-        "device_class",
-    ],
-    registry=registry,
-)
+device_registry = {}
+entity_registry = {}
+registry = CollectorRegistry()
+metric = {
+    "hass_device_info": Gauge(
+        "hass_device_info",
+        "Information about the device.",
+        [
+            "manufacturer",
+            "model",
+            "sw_version",
+            "hw_version",
+            "device",
+            "name",
+            'integration',
+            'identifier',
+        ],
+        registry=registry,
+    ),
+    "hass_device_esphome_signal_strength": Gauge(
+        "hass_device_esphome_signal_strength",
+        "Information about the device.",
+        [
+            "device",
+            "essid",
+        ],
+        registry=registry,
+    ),
+    "hass_device_esphome_uptime": Gauge(
+        "hass_device_esphome_uptime",
+        "Information about the device.",
+        [
+            "device",
+        ],
+        registry=registry,
+    ),
+    "hass_entity_info": Gauge(
+        "hass_entity_info",
+        "Information about the entity.",
+        [
+            "entity",
+            "area",
+            "device",
+            "class",
+            "unit_of_measurement",
+        ],
+        registry=registry,
+    ),
+    "hass_entity_value": Gauge(
+        "hass_entity_value",
+        "Value of the entity.",
+        [
+            "entity",
+        ],
+        registry=registry,
+    ),
+    "hass_entity_available": Gauge(
+        "hass_entity_available",
+        "Availability of the entity value.",
+        [
+            "entity",
+        ],
+        registry=registry,
+    ),
+    "hass_entity_changed": Gauge(
+        "hass_entity_changed",
+        "Last time the entity value has changed.",
+        [
+            "entity",
+        ],
+        registry=registry,
+    ),
+    "hass_entity_updated": Gauge(
+        "hass_entity_updated",
+        "Last time the entity value has been updated.",
+        [
+            "entity",
+        ],
+        registry=registry,
+    ),
+}
 
 
 def get_arguments() -> argparse.Namespace:
@@ -41,7 +108,8 @@ def get_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Home Assistant simple client for Python"
     )
-    parser.add_argument("--debug", action="store_true", help="Log with debug level")
+    parser.add_argument("--debug", action="store_true",
+                        help="Log with debug level")
     parser.add_argument(
         "url",
         type=str,
@@ -65,7 +133,6 @@ async def start_cli() -> None:
     args = get_arguments()
     level = logging.DEBUG if args.debug else logging.INFO
     logging.basicConfig(level=level)
-
     async with aiohttp.ClientSession() as session:
         await connect(args, session)
 
@@ -88,33 +155,92 @@ async def home(request):
     return web.Response(text=page, content_type="text/html")
 
 
-def _get_labels(device):
-    attrs = device.get("attributes", {})
-    LOGGER.debug(device)
+def _get_device_labels(device):
+    if device['hw_version'] == None:
+        hw_version = ''
+    else:
+        hw_version = device['hw_version']
+    if device['sw_version'] == None:
+        sw_version = ''
+    else:
+        sw_version = device['sw_version']
+    if device['name_by_user'] == None:
+        name = device['name']
+    else:
+        name = device['name_by_user']
+    LOGGER.warning(device.get('identifiers'))
+    identifiers = device.get('identifiers', '')
+    integration = ''
+    identifier = ''
+    if identifiers != []:
+        identifiers = identifiers[0]
+        integration = identifiers[0]
+        if len(identifiers) > 1:
+            identifier = identifiers[1]
+    else:
+        if device['model'].startswith("PLATFORMIO"):
+            integration = 'esphome'
     return {
-        "manufacturer": device.get("manufacturer", "unknown"),
-        "model": device.get("model", "unknown"),
-        "sw_version": device.get("sw_version", "unknown"),
-        "hw_version": device.get("hw_version", "unknown"),
-        "id": device.get("id", "unknown"),
-        "entity_id": device["entity_id"],
-        "name": device.get("name", attrs.get("friendly_name", "unknown")),
-        "unit_of_measurement": device.get(
-            "unit_of_measurement", attrs.get("unit_of_measurement", "unknown")
+        'manufacturer': device['manufacturer'],
+        'model': device['model'],
+        'sw_version': sw_version,
+        'hw_version': hw_version,
+        'device': device['id'],
+        'name': name,
+        'integration': integration,
+        'identifier': identifier,
+    }
+
+
+def _get_entity_labels(entity):
+    attrs = entity.get("attributes", {})
+    # LOGGER.warning(entity)
+    return {
+        "area": entity.get("area_id", ''),
+        "device": entity.get("device_id", ''),
+        "entity": entity["entity_id"],
+        "unit_of_measurement": entity.get(
+            "unit_of_measurement", attrs.get("unit_of_measurement", "")
         ),
-        "state_class": attrs.get("state_class", "unknown"),
-        "device_class": attrs.get("device_class", "unknown"),
+        "class": attrs.get("device_class", ""),
     }
 
 
 async def init_metrics(hass):
-    for key, device in hass.get_all_entities().items():
+
+    # for id, area in hass.area_registry.items():
+    #    LOGGER.warning(area)
+
+    for id, device in hass.device_registry.items():
+        device_labels = _get_device_labels(device)
+        if device_labels['integration'] not in FORBIDDEN_INTEGRATIONS:
+            device_registry[id] = device
+            device_registry[id]['entities'] = []
+            metric['hass_device_info'].labels(**device_labels).set(1)
+
+    for id, entity in hass.get_all_entities().items():
+        if id.split('.')[0] not in ALLOWED_DOMAINS:
+            pass
+        entity_registry[id] = entity
+        if entity.get('device_id', None) in device_registry:
+            device_registry[entity['device_id']]['entities'].append(entity)
         try:
-            metric["hass_device_info"].labels(**_get_labels(device)).set(
-                device["state"]
+            labels = _get_entity_labels(entity)
+            # LOGGER.warning(labels)
+            metric["hass_entity_info"].labels(**labels).set(1)
+            metric["hass_entity_updated"].labels(entity=id).set(
+                datetime.fromisoformat(entity['last_updated']).timestamp()
             )
+            metric["hass_entity_changed"].labels(entity=id).set(
+                datetime.fromisoformat(entity['last_changed']).timestamp()
+            )
+            if labels['unit_of_measurement'] != '':
+                metric["hass_entity_value"].labels(entity=id).set(
+                    entity["state"]
+                )
         except Exception as e:
-            LOGGER.warning(f"Could not set {key} - {e}")
+            LOGGER.warning(f"Could not set {id} - {e}")
+    # LOGGER.warning(device_registry)
 
 
 async def connect(args: argparse.Namespace, session: aiohttp.ClientSession) -> None:
@@ -123,7 +249,7 @@ async def connect(args: argparse.Namespace, session: aiohttp.ClientSession) -> N
         client.register_event_callback(log_events)
         await client._request_full_state()
         await init_metrics(client)
-        await asyncio.sleep(360)
+        await asyncio.sleep(60)
 
 
 def log_events(hass: HomeAssistantClient, event: str, event_data: dict) -> None:
@@ -135,13 +261,14 @@ def log_events(hass: HomeAssistantClient, event: str, event_data: dict) -> None:
     if "old_state" and "new_state" in event_data:
 
         entity = hass.get_full_entity(event_data["entity_id"])
-
-        try:
-            metric["hass_device_info"].labels(**_get_labels(entity)).set(
-                event_data["new_state"]["state"]
-            )
-        except Exception as e:
-            LOGGER.warning(f"Could not set {entity['entity_id']} event_data - {e}")
+        if entity['entity_id'].split('.')[0] in ALLOWED_DOMAINS:
+            try:
+                metric["hass_entity_value"].labels(entity=entity['entity_id']).set(
+                    event_data["new_state"]["state"]
+                )
+            except Exception as e:
+                LOGGER.warning(
+                    f"Could not set {entity['entity_id']} event_data - {e}")
 
 
 def main() -> None:
