@@ -2,22 +2,22 @@
 import argparse
 import asyncio
 import logging
-from os import device_encoding
+from datetime import datetime
 import sys
 from aiohttp import web
-
-from datetime import datetime
-
 import aiohttp
 
-from home_assistant_exporter.client_org import HomeAssistantClient
-from prometheus_client import Gauge, Counter, Summary, Histogram
+from home_assistant_exporter.client import HomeAssistantClient
+from prometheus_client import Gauge, Counter
 from prometheus_client import generate_latest, CollectorRegistry
 
 LOGGER = logging.getLogger(__package__)
 
-ALLOWED_DOMAINS = ['sensor', 'binary_sensor']
-FORBIDDEN_INTEGRATIONS = ['adguard', 'met', 'moon', 'hassio']
+ALLOWED_DOMAINS = ['sensor',
+                   'binary_sensor']
+FORBIDDEN_INTEGRATIONS = ['adguard', 'met',
+                          'moon', 'hassio',
+                          'garbage_collection']
 
 device_registry = {}
 entity_registry = {}
@@ -38,7 +38,7 @@ metric = {
         ],
         registry=registry,
     ),
-    "hass_device_last_seen": Gauge(
+    "hass_device_last_seen": Counter(
         "hass_device_last_seen",
         "Last update time of entities connected to the device",
         [
@@ -64,7 +64,7 @@ metric = {
         ],
         registry=registry,
     ),
-    "hass_device_esphome_uptime": Gauge(
+    "hass_device_esphome_uptime": Counter(
         "hass_device_esphome_uptime",
         "Number of seconds the device is running",
         [
@@ -204,7 +204,7 @@ def _get_device_labels(device):
         if len(identifiers) > 1:
             identifier = identifiers[1]
     else:
-        if device['manufacturer'] == "espressif":
+        if device['manufacturer'] in ["espressif", "Espressif Inc."]:
             integration = 'esphome'
     return {
         'manufacturer': device['manufacturer'],

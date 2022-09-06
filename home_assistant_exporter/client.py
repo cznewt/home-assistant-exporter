@@ -417,15 +417,14 @@ class HomeAssistantClient:
         for item in await self.send_command({"type": "config/device_registry/list"}):
             item_id = item["id"]
             self._device_registry[item_id] = item
-        # Request ZHA device registry
-        for item in await self.send_command({"type": "zha/devices"}):
-            LOGGER.warning(item)
-            item_id = item["ieee"]
-            self._zha_device_registry[item_id] = item
         # Request entity registry
         for item in await self.send_command({"type": "config/entity_registry/list"}):
             item_id = item["entity_id"]
             self._entity_registry[item_id] = item
+        # Request ZHA device registry
+        for item in await self.send_command({"type": "zha/devices"}):
+            item_id = item["ieee"]
+            self._zha_device_registry[item_id] = item
 
     async def _post_data(self, endpoint: str, data: dict):
         """Post data to hass rest api."""
