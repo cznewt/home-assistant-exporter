@@ -54,7 +54,7 @@ metric = {
         ],
         registry=registry,
     ),
-    "hass_device_esphome_wifi_signal_strength": Gauge(
+    "hass_device_esphome_signal_strength": Gauge(
         "hass_device_esphome_signal_strength",
         "ESPHome device signal strength with information about connected Access Point",
         [
