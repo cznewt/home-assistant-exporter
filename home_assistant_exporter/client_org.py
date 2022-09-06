@@ -54,6 +54,7 @@ class HomeAssistantClient:
         If url and token are omitted, assume supervisor install.
         """
         self._states = {}
+        self._zha_device_registry = {}
         self._device_registry = {}
         self._entity_registry = {}
         self._area_registry = {}
@@ -110,6 +111,13 @@ class HomeAssistantClient:
             self._event_listeners.remove(listener)
 
         return remove_listener
+
+    @property
+    def zha_device_registry(self) -> dict:
+        """Return ZHA device registry."""
+        if not self._zha_device_registry:
+            raise NotConnected("Please call connect first.")
+        return self._zha_device_registry
 
     @property
     def device_registry(self) -> dict:
@@ -409,6 +417,11 @@ class HomeAssistantClient:
         for item in await self.send_command({"type": "config/device_registry/list"}):
             item_id = item["id"]
             self._device_registry[item_id] = item
+        # Request ZHA device registry
+        for item in await self.send_command({"type": "zha/devices"}):
+            LOGGER.warning(item)
+            item_id = item["ieee"]
+            self._zha_device_registry[item_id] = item
         # Request entity registry
         for item in await self.send_command({"type": "config/entity_registry/list"}):
             item_id = item["entity_id"]
