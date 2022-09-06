@@ -40,24 +40,25 @@ metric = {
     ),
     "hass_device_last_seen": Gauge(
         "hass_device_last_seen",
-        "Time of last device activity.",
+        "Last update time of entities connected to the device",
         [
             "device",
         ],
         registry=registry,
     ),
-    "hass_device_esphome_signal_strength": Gauge(
+    "hass_device_esphome_wifi_signal_strength": Gauge(
         "hass_device_esphome_signal_strength",
         "ESPHome device signal strength with information about connected Access Point",
         [
             "device",
+            "bssid",
             "essid",
         ],
         registry=registry,
     ),
     "hass_device_esphome_uptime": Gauge(
         "hass_device_esphome_uptime",
-        "Information about the device.",
+        "Number of seconds the device is running",
         [
             "device",
         ],

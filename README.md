@@ -18,29 +18,29 @@ To get diagnostic information for ESPHome devices we need to have some sensors d
 
 ```yaml
 esphome:
-  name: device_name
+  name: <device_name>
 sensor:
-  - id: device_name_uptime
-    name: device_name_uptime
+  - id: <device_name>_uptime
+    name: <device_name>_uptime
     platform: uptime
     update_interval: 5s
-  - id: device_name_wifi_signal
-    name: device_name_wifi_signal
+  - id: <device_name>_wifi_signal
+    name: <device_name>_wifi_signal
     platform: wifi_signal
     update_interval: 5s
 text_sensor:
   - bssid:
-      id: device_name_bssid
-      name: device_name_bssid
+      id: <device_name>_bssid
+      name: <device_name>_bssid
     ip_address:
-      id: device_name_ip_address
-      name: device_name_ip_address
+      id: <device_name>_ip_address
+      name: <device_name>_ip_address
     mac_address:
-      id: device_name_mac_address
-      name: device_name_mac_address
+      id: <device_name>_mac_address
+      name: <device_name>_mac_address
     ssid:
-      id: device_name_ssid
-      name: device_name_ssid
+      id: <device_name>_ssid
+      name: <device_name>_ssid
     platform: wifi_info
 ```
 
@@ -51,4 +51,7 @@ Device MAC address gets propagated to `identifier` label in `hass_device_info` m
 | Metric name| Metric type | Description | Unit | Labels/tags |
 | ---------- | ----------- | ----------- | ---- | ----------- |
 | hass_device_info | Gauge | General information about the device | | `manufacturer` =&lt; manufacturer&gt; <br> `model` =&lt; model-version&gt; <br> `sw_version` =&lt; sw-version&gt; <br> `hw_version` =&lt; hw-version&gt; <br> `id` =&lt; unique-id&gt; |
-| hass_device_esphome_signal_strength | Gauge | ESPHome device signal strength with information about connected Access Point | dBm | `device` =&lt; device-id&gt; <br> `bssid` =&lt; ap-name&gt; <br> `essid` =&lt; ap-essid&gt; |
+| hass_device_last_seen | Gauge | Last update time of entities connected to the device | | `device` =&lt; device-id&gt; |
+| hass_device_esphome_uptime | Gauge | Number of seconds the device is running | s | `device` =&lt; device-id&gt; |
+| hass_device_esphome_wifi_signal_strength | Gauge | ESPHome device signal strength with information about connected Access Point | dBm | `device` =&lt; device-id&gt; <br> `bssid` =&lt; ap-name&gt; <br> `essid` =&lt; ap-essid&gt; |
+
