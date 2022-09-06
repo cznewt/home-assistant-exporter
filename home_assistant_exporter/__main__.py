@@ -8,8 +8,8 @@ from aiohttp import web
 import aiohttp
 
 from home_assistant_exporter.client import HomeAssistantClient
-from prometheus_client import Gauge, Counter
-from prometheus_client import generate_latest, CollectorRegistry
+from home_assistant_exporter.metrics import metric, registry
+from prometheus_client import generate_latest
 
 LOGGER = logging.getLogger(__package__)
 
@@ -21,111 +21,6 @@ FORBIDDEN_INTEGRATIONS = ['adguard', 'met',
 
 device_registry = {}
 entity_registry = {}
-registry = CollectorRegistry()
-metric = {
-    "hass_device_info": Gauge(
-        "hass_device_info",
-        "General information about the device",
-        [
-            "manufacturer",
-            "model",
-            "sw_version",
-            "hw_version",
-            "device",
-            "name",
-            'integration',
-            'identifier',
-        ],
-        registry=registry,
-    ),
-    "hass_device_last_seen": Counter(
-        "hass_device_last_seen",
-        "Last update time of entities connected to the device",
-        [
-            "device",
-        ],
-        registry=registry,
-    ),
-    "hass_device_battery_remaining": Gauge(
-        "hass_device_battery_remaining",
-        "The remaining percentage of device battery",
-        [
-            "device",
-        ],
-        registry=registry,
-    ),
-    "hass_device_esphome_signal_strength": Gauge(
-        "hass_device_esphome_signal_strength",
-        "ESPHome device signal strength with information about connected Access Point",
-        [
-            "device",
-            "bssid",
-            "essid",
-        ],
-        registry=registry,
-    ),
-    "hass_device_esphome_uptime": Counter(
-        "hass_device_esphome_uptime",
-        "Number of seconds the device is running",
-        [
-            "device",
-        ],
-        registry=registry,
-    ),
-    "hass_device_zha_mesh_lqi": Gauge(
-        "hass_device_zha_connection_lqi",
-        "LQI info of neighbouring devices connected to the Zigbee device",
-        [
-            "device",
-            "neighbour"
-        ],
-        registry=registry,
-    ),
-    "hass_entity_info": Gauge(
-        "hass_entity_info",
-        "Information about the entity.",
-        [
-            "entity",
-            "area",
-            "device",
-            "class",
-            "unit_of_measurement",
-        ],
-        registry=registry,
-    ),
-    "hass_entity_value": Gauge(
-        "hass_entity_value",
-        "Value of the entity.",
-        [
-            "entity",
-        ],
-        registry=registry,
-    ),
-    "hass_entity_available": Gauge(
-        "hass_entity_available",
-        "Availability of the entity value.",
-        [
-            "entity",
-        ],
-        registry=registry,
-    ),
-    "hass_entity_changed": Gauge(
-        "hass_entity_changed",
-        "Last time the entity value has changed.",
-        [
-            "entity",
-        ],
-        registry=registry,
-    ),
-    "hass_entity_updated": Gauge(
-        "hass_entity_updated",
-        "Last time the entity value has been updated.",
-        [
-            "entity",
-        ],
-        registry=registry,
-    ),
-}
 
 
 def get_arguments() -> argparse.Namespace:
@@ -225,10 +120,8 @@ def _get_entity_labels(entity):
         "area": entity.get("area_id", ''),
         "device": entity.get("device_id", ''),
         "entity": entity["entity_id"],
-        "unit_of_measurement": entity.get(
-            "unit_of_measurement", attrs.get("unit_of_measurement", "")
-        ),
         "class": attrs.get("device_class", ""),
+        "unit": entity.get("unit_of_measurement", attrs.get("unit_of_measurement", "")),
     }
 
 
@@ -267,7 +160,7 @@ async def init_metrics(hass):
             metric["hass_entity_changed"].labels(entity=id).set(
                 datetime.fromisoformat(entity['last_changed']).timestamp()
             )
-            if labels['unit_of_measurement'] != '':
+            if labels['unit'] != '':
                 metric["hass_entity_value"].labels(entity=id).set(
                     entity["state"]
                 )
