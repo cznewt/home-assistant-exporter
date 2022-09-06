@@ -278,7 +278,7 @@ class HomeAssistantClient:
 
         LOGGER.info(
             "Connected to Home Assistant %s (version %s)",
-            self.ws_server_url.split("://")[0].split("/")[0],
+            self.ws_server_url.split("://")[1].split("/")[0],
             self.version,
         )
         # start task to handle incoming messages

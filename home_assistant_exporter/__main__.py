@@ -2,10 +2,9 @@
 import argparse
 import asyncio
 import logging
-from datetime import datetime
 import sys
-from aiohttp import web
-import aiohttp
+from datetime import datetime
+from aiohttp import web, ClientSession
 
 from home_assistant_exporter.client import HomeAssistantClient
 from home_assistant_exporter.metrics import metric, registry
@@ -54,7 +53,7 @@ async def start_cli() -> None:
     args = get_arguments()
     level = logging.DEBUG if args.debug else logging.INFO
     logging.basicConfig(level=level)
-    async with aiohttp.ClientSession() as session:
+    async with ClientSession() as session:
         await connect(args, session)
 
 
@@ -175,7 +174,7 @@ async def init_metrics(hass):
     # LOGGER.warning(device_registry)
 
 
-async def connect(args: argparse.Namespace, session: aiohttp.ClientSession) -> None:
+async def connect(args: argparse.Namespace, session: ClientSession) -> None:
     """Connect to the server."""
     async with HomeAssistantClient(args.url, args.token, session) as client:
         client.register_event_callback(log_events)

@@ -2,6 +2,7 @@ from prometheus_client import Gauge, Counter
 from prometheus_client import CollectorRegistry
 
 registry = CollectorRegistry()
+
 metric = {
     "hass_device_info": Gauge(
         "hass_device_info",
