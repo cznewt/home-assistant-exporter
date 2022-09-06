@@ -46,6 +46,14 @@ metric = {
         ],
         registry=registry,
     ),
+    "hass_device_battery_remaining": Gauge(
+        "hass_device_battery_remaining",
+        "The remaining percentage of device battery",
+        [
+            "device",
+        ],
+        registry=registry,
+    ),
     "hass_device_esphome_wifi_signal_strength": Gauge(
         "hass_device_esphome_signal_strength",
         "ESPHome device signal strength with information about connected Access Point",
@@ -64,12 +72,12 @@ metric = {
         ],
         registry=registry,
     ),
-    "hass_device_zha_connection_lqi": Gauge(
+    "hass_device_zha_mesh_lqi": Gauge(
         "hass_device_zha_connection_lqi",
-        "Information about the Zigbee device connection LQI to neighbours.",
+        "LQI info of neighbouring devices connected to the Zigbee device",
         [
             "device",
-            "target"
+            "neighbour"
         ],
         registry=registry,
     ),
