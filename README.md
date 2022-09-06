@@ -50,6 +50,6 @@ Device MAC address gets propagated to `identifier` label in `hass_device_info` m
 
 | Metric name| Metric type | Description | Unit | Labels/tags |
 | ---------- | ----------- | ----------- | ---- | ----------- |
-| hass_device_info | Gauge | Information about the device | | `manufacturer` =&lt; manufacturer&gt; <br> `model` =&lt; model-version&gt; <br> `sw_version` =&lt; sw-version&gt; <br> `hw_version` =&lt; hw-version&gt; <br> `id` =&lt; unique-id&gt; |
-| hass_device_name | Gauge | Human name of the device | | `name` =&lt; human-name&gt; <br> `id` =&lt; unique-id&gt; |
-| hass_device_esphome_signal_strength | Gauge | Signal of the ESPHome device | dBm | `bssid` =&lt; ap-name&gt; <br> `essid` =&lt; ap-essid&gt; <br> `device` =&lt; device-id&gt; |
+| hass_device_info | Gauge | General information about the device | | `manufacturer` =&lt; manufacturer&gt; <br> `model` =&lt; model-version&gt; <br> `sw_version` =&lt; sw-version&gt; <br> `hw_version` =&lt; hw-version&gt; <br> `id` =&lt; unique-id&gt; |
+
+| hass_device_esphome_signal_strength | Gauge | ESPHome device signal strength with information about connected Access Point | dBm | `device` =&lt; device-id&gt; <br> `bssid` =&lt; ap-name&gt; <br> `essid` =&lt; ap-essid&gt; |

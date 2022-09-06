@@ -25,7 +25,7 @@ registry = CollectorRegistry()
 metric = {
     "hass_device_info": Gauge(
         "hass_device_info",
-        "Information about the device.",
+        "General information about the device",
         [
             "manufacturer",
             "model",
@@ -48,7 +48,7 @@ metric = {
     ),
     "hass_device_esphome_signal_strength": Gauge(
         "hass_device_esphome_signal_strength",
-        "Information about the device.",
+        "ESPHome device signal strength with information about connected Access Point",
         [
             "device",
             "essid",
