@@ -17,7 +17,7 @@ from prometheus_client import generate_latest, CollectorRegistry
 LOGGER = logging.getLogger(__package__)
 
 ALLOWED_DOMAINS = ['sensor', 'binary_sensor']
-FORBIDDEN_INTEGRATIONS = ['met', 'moon']
+FORBIDDEN_INTEGRATIONS = ['adguard', 'met', 'moon', 'hassio']
 
 device_registry = {}
 entity_registry = {}
@@ -38,6 +38,14 @@ metric = {
         ],
         registry=registry,
     ),
+    "hass_device_last_seen": Gauge(
+        "hass_device_last_seen",
+        "Time of last device activity.",
+        [
+            "device",
+        ],
+        registry=registry,
+    ),
     "hass_device_esphome_signal_strength": Gauge(
         "hass_device_esphome_signal_strength",
         "Information about the device.",
@@ -52,6 +60,15 @@ metric = {
         "Information about the device.",
         [
             "device",
+        ],
+        registry=registry,
+    ),
+    "hass_device_zha_connection_lqi": Gauge(
+        "hass_device_zha_connection_lqi",
+        "Information about the Zigbee device connection LQI to neighbours.",
+        [
+            "device",
+            "target"
         ],
         registry=registry,
     ),
@@ -168,7 +185,7 @@ def _get_device_labels(device):
         name = device['name']
     else:
         name = device['name_by_user']
-    LOGGER.warning(device.get('identifiers'))
+    # LOGGER.warning(device.get('identifiers'))
     identifiers = device.get('identifiers', '')
     integration = ''
     identifier = ''
@@ -178,7 +195,7 @@ def _get_device_labels(device):
         if len(identifiers) > 1:
             identifier = identifiers[1]
     else:
-        if device['model'].startswith("PLATFORMIO"):
+        if device['manufacturer'] == "espressif":
             integration = 'esphome'
     return {
         'manufacturer': device['manufacturer'],
@@ -208,6 +225,9 @@ def _get_entity_labels(entity):
 
 async def init_metrics(hass):
 
+    # for id, zha_device in hass.zha_device_registry.items():
+    #    LOGGER.warning(zha_device)
+
     # for id, area in hass.area_registry.items():
     #    LOGGER.warning(area)
 
@@ -216,6 +236,8 @@ async def init_metrics(hass):
         if device_labels['integration'] not in FORBIDDEN_INTEGRATIONS:
             device_registry[id] = device
             device_registry[id]['entities'] = []
+            if device_labels['integration'] == 'zha':
+                device_registry[id]['zha'] = hass.zha_device_registry[device_labels['identifier']]
             metric['hass_device_info'].labels(**device_labels).set(1)
 
     for id, entity in hass.get_all_entities().items():
@@ -224,6 +246,8 @@ async def init_metrics(hass):
         entity_registry[id] = entity
         if entity.get('device_id', None) in device_registry:
             device_registry[entity['device_id']]['entities'].append(entity)
+            device_registry[entity['device_id']
+                            ]['last_seen'] = entity.get('last_changed', None)
         try:
             labels = _get_entity_labels(entity)
             # LOGGER.warning(labels)
@@ -240,6 +264,12 @@ async def init_metrics(hass):
                 )
         except Exception as e:
             LOGGER.warning(f"Could not set {id} - {e}")
+
+    for id, device in device_registry.items():
+        if 'last_seen' in device and device['last_seen'] != None:
+            metric["hass_device_last_seen"].labels(
+                device=id).set(datetime.fromisoformat(device['last_seen']).timestamp())
+
     # LOGGER.warning(device_registry)
 
 
