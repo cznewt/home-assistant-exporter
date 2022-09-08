@@ -8,12 +8,12 @@ metric = {
         "hass_device_info",
         "General information about the device",
         [
+            "device_id",
+            "device_name",
             "manufacturer",
             "model",
             "sw_version",
             "hw_version",
-            "device",
-            "name",
             'integration',
             'identifier',
         ],
@@ -23,7 +23,7 @@ metric = {
         "hass_device_last_seen",
         "Last update time of entities connected to the device",
         [
-            "device",
+            "device_id",
         ],
         registry=registry,
     ),
@@ -31,7 +31,7 @@ metric = {
         "hass_device_battery_remaining",
         "The remaining percentage of device battery",
         [
-            "device",
+            "device_id",
         ],
         registry=registry,
     ),
@@ -39,7 +39,7 @@ metric = {
         "hass_esphome_device_signal_strength",
         "ESPHome device signal strength with information about connected Access Point",
         [
-            "device",
+            "device_id",
             "bssid",
             "essid",
         ],
@@ -49,16 +49,16 @@ metric = {
         "hass_esphome_device_uptime",
         "Number of seconds the device is running",
         [
-            "device",
+            "device_id",
         ],
         registry=registry,
     ),
-    "hass_device_zha_mesh_lqi": Gauge(
-        "hass_device_zha_connection_lqi",
+    "hass_zha_mesh_lqi": Gauge(
+        "hass_zha_mesh_lqi",
         "LQI info of neighbouring devices connected to the Zigbee device",
         [
-            "device",
-            "neighbour"
+            "source_ieee",
+            "target_ieee"
         ],
         registry=registry,
     ),
@@ -66,9 +66,10 @@ metric = {
         "hass_entity_info",
         "Information about the entity.",
         [
-            "entity",
-            "area",
-            "device",
+            "entity_id",
+            "entity_name",
+            "area_id",
+            "device_id",
             "class",
             "unit",
         ],
@@ -78,7 +79,7 @@ metric = {
         "hass_entity_value",
         "Value of the entity.",
         [
-            "entity",
+            "entity_id",
         ],
         registry=registry,
     ),
@@ -86,23 +87,23 @@ metric = {
         "hass_entity_available",
         "Availability of the entity value.",
         [
-            "entity",
+            "entity_id",
         ],
         registry=registry,
     ),
-    "hass_entity_changed": Gauge(
-        "hass_entity_changed",
+    "hass_entity_last_change": Gauge(
+        "hass_entity_last_change",
         "Last time the entity value has changed.",
         [
-            "entity",
+            "entity_id",
         ],
         registry=registry,
     ),
-    "hass_entity_updated": Gauge(
-        "hass_entity_updated",
+    "hass_entity_last_update": Gauge(
+        "hass_entity_last_update",
         "Last time the entity value has been updated.",
         [
-            "entity",
+            "entity_id",
         ],
         registry=registry,
     ),
