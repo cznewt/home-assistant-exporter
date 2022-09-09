@@ -41,6 +41,13 @@ def get_arguments() -> argparse.Namespace:
         nargs="?",
         const=None,
     )
+    parser.add_argument(
+        "suffix",
+        type=str,
+        help="ID suffix (`id` or `name`)",
+        nargs="?",
+        const=None,
+    )
     arguments = parser.parse_args()
     return arguments
 

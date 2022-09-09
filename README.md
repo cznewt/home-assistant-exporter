@@ -1,10 +1,10 @@
 # Home Assistant Exporter for Prometheus
 
-Metrics exporter providing diagnostic metrics from Home Assistant.
+Metrics exporter providing [Home Assistant](https://www.home-assistant.io/) diagnostic metrics.
 
 ## Motivation
 
-* Home Assistant Prometheus intergation exposes only entity metrics with no correlation to the devices
+* Home Assistant [Prometheus intergation](https://www.home-assistant.io/integrations/prometheus/) exposes only entity metrics with no correlation to the devices
 * Home Assistant metrics endpoint requires API token which makes it impossible to use with automated Service Discovery
 * Home Assistant does no provide low-level details for devices
 
