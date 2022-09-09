@@ -46,11 +46,11 @@ text_sensor:
 
 Device MAC address gets propagated to `identifier` label in `hass_device_info` metrics.
 
-### Linking battery entities
+### Linking Battery Entities
 
-## Exposed metrics
+## Provided Metrics
 
-### Generic device metrics
+### Generic Device Metrics
 
 | Metric name| Metric type | Description | Unit | Labels/tags |
 | ---------- | ----------- | ----------- | ---- | ----------- |
@@ -58,20 +58,20 @@ Device MAC address gets propagated to `identifier` label in `hass_device_info` m
 | hass_device_last_seen | Counter | Last update time of entities connected to the device | s | `device_id` = &lt;device-id&gt; |
 | hass_device_battery_remaining | Gauge | The remaining percentage of device battery | % | `device_id` = &lt;device-id&gt; |
 
-### Generic entity metrics
+### Generic Entity Metrics
 
 | Metric name| Metric type | Description | Unit | Labels/tags |
 | ---------- | ----------- | ----------- | ---- | ----------- |
 | hass_entity_info | Gauge | General information about the entity | | `area_id` = &lt;area-id&gt; <br> `device_id` = &lt;device-id&gt; <br> `entity_id` = &lt;entity-id&gt; <br> `entity_name` = &lt;entity-name&gt; |
 
-### ESPHome metrics
+### ESPHome Metrics
 
 | Metric name| Metric type | Description | Unit | Labels/tags |
 | ---------- | ----------- | ----------- | ---- | ----------- |
 | hass_esphome_device_uptime | Counter | Number of seconds the device is running | s | `device_id` = &lt;device-id&gt; |
 | hass_esphome_device_signal_strength | Gauge | ESPHome device signal strength with information about connected Access Point | dBm | `device_id` = &lt;device-id&gt; <br> `bssid` = &lt;ap-mac&gt; <br> `essid` = &lt;ap-name&gt; |
 
-### Zigbee metrics
+### ZHA Metrics
 
 | Metric name| Metric type | Description | Unit | Labels/tags |
 | ---------- | ----------- | ----------- | ---- | ----------- |
