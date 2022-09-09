@@ -1,4 +1,5 @@
-"""Basic CLI to provide Home Assistant exporter."""
+"""Home Assistant exporter main"""
+
 import argparse
 import asyncio
 import logging
@@ -64,7 +65,7 @@ async def home(request):
         <head><title>Home Assistant Exporter</title></head>
         <body>
         <h1>Home Assistant Exporter</h1>
-        <p><a href="/metrics">Metrics</a></p>
+        <p><a href="/metrics">metrics</a></p>
         </body>
         </html>
     """
@@ -130,11 +131,10 @@ def _get_entity_info_labels(entity):
 
 async def init_metrics(hass):
 
-    # for id, zha_device in hass.zha_device_registry.items():
-    #    LOGGER.warning(zha_device)
-
-    # for id, area in hass.area_registry.items():
-    #    LOGGER.warning(area)
+    for id, area in hass.area_registry.items():
+        metric["hass_area_info"].labels(
+            area_id=area["area_id"], area_name=area["name"]
+        ).set(1)
 
     for id, device in hass.device_registry.items():
         device_labels = _get_device_info_labels(device)
@@ -149,9 +149,14 @@ async def init_metrics(hass):
                     metric["hass_zha_mesh_lqi"].labels(
                         source_ieee=device_labels["identifier"],
                         target_ieee=neighbor["ieee"],
-                    ).set(1)
+                    ).set(neighbor["lqi"])
+                metric["hass_zha_device_info"].labels(
+                    device_id=device_labels["identifier"],
+                    device_type=device["zha"]["device_type"],
+                    power_source=device["zha"]["power_source"],
+                )
+                LOGGER.info(device_registry[id]["zha"])
 
-                    LOGGER.info(neighbor)
             metric["hass_device_info"].labels(**device_labels).set(1)
 
     for id, entity in hass.get_all_entities().items():

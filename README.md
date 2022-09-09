@@ -1,6 +1,6 @@
-# home-assistant-exporter
+# Home Assistant Exporter for Prometheus
 
-Metric exporter exposing diagnostic metrics for devices connected to Home Assistant.
+Metrics exporter providing diagnostic metrics from Home Assistant.
 
 ## Motivation
 
@@ -55,7 +55,7 @@ Device MAC address gets propagated to `identifier` label in `hass_device_info` m
 | Metric name| Metric type | Description | Unit | Labels/tags |
 | ---------- | ----------- | ----------- | ---- | ----------- |
 | hass_device_info | Gauge | General information about the device | | `manufacturer` = &lt;manufacturer&gt; <br> `model` = &lt;model-version&gt; <br> `sw_version` = &lt;sw-version&gt; <br> `hw_version` = &lt;hw-version&gt; <br> `device_id` = &lt;device-id&gt;  <br> `device_name` = &lt;device-name&gt; |
-| hass_device_last_seen | Counter | Last update time of entities connected to the device | | `device_id` = &lt;device-id&gt; |
+| hass_device_last_seen | Counter | Last update time of entities connected to the device | s | `device_id` = &lt;device-id&gt; |
 | hass_device_battery_remaining | Gauge | The remaining percentage of device battery | % | `device_id` = &lt;device-id&gt; |
 
 ### Generic entity metrics
@@ -68,12 +68,14 @@ Device MAC address gets propagated to `identifier` label in `hass_device_info` m
 
 | Metric name| Metric type | Description | Unit | Labels/tags |
 | ---------- | ----------- | ----------- | ---- | ----------- |
-| hass_esphome_device_uptime | Counter | Number of seconds the device is running | s | `device` = &lt;device-id&gt; |
-| hass_esphome_device_signal_strength | Gauge | ESPHome device signal strength with information about connected Access Point | dBm | `device` = &lt;device-id&gt; <br> `bssid` = &lt;ap-mac&gt; <br> `essid` = &lt;ap-name&gt; |
+| hass_esphome_device_uptime | Counter | Number of seconds the device is running | s | `device_id` = &lt;device-id&gt; |
+| hass_esphome_device_signal_strength | Gauge | ESPHome device signal strength with information about connected Access Point | dBm | `device_id` = &lt;device-id&gt; <br> `bssid` = &lt;ap-mac&gt; <br> `essid` = &lt;ap-name&gt; |
 
 ### Zigbee metrics
 
 | Metric name| Metric type | Description | Unit | Labels/tags |
 | ---------- | ----------- | ----------- | ---- | ----------- |
-| hass_zha_mesh_lqi | Gauge | LQI info of neighbouring devices connected to the Zigbee device | | `source_iee` = &lt;device-ieee&gt; <br> `target_ieee` = &lt;device-ieee&gt; |
-| hass_zha_device_type | Gauge | Type of the the Zigbee device | | `device_d` = &lt;device-id&gt; |
+| hass_zha_device_info | Gauge | Specific information about the Zigbee device | | `device_id` = &lt;device-id&gt; |
+| hass_zha_device_lqi | Gauge | The link quality indicator (LQI) of the Zigbee device is an indication of the quality of the data packets received by the receiver. | | `device_id` = &lt;device-id&gt; |
+| hass_zha_device_rssi | Gauge | Received signal strength indicator (RSSI) of the Zigbee device is a measurement of the power present in a received radio signal. | dBm | `device_id` = &lt;device-id&gt; |
+| hass_zha_mesh_lqi | Gauge | LQI info of neighbouring devices connected to the Zigbee device | | `source_iee` = &lt;ieee&gt; <br> `target_ieee` = &lt;ieee&gt; |

@@ -1,9 +1,20 @@
-from prometheus_client import Gauge, Counter
+from prometheus_client import Gauge, Counter, Info, Enum
 from prometheus_client import CollectorRegistry
 
 registry = CollectorRegistry()
 
+ID_SUFFIX = "id"
+
 metric = {
+    "hass_area_info": Gauge(
+        "hass_area_info",
+        "General information about the area",
+        [
+            "area_id",
+            "area_name",
+        ],
+        registry=registry,
+    ),
     "hass_device_info": Gauge(
         "hass_device_info",
         "General information about the device",
@@ -14,16 +25,16 @@ metric = {
             "model",
             "sw_version",
             "hw_version",
-            'integration',
-            'identifier',
+            "integration",
+            "identifier",
         ],
         registry=registry,
     ),
     "hass_device_last_seen": Gauge(
         "hass_device_last_seen",
-        "Last update time of entities connected to the device",
+        "Last time of entities connected to the device were updated",
         [
-            "device_id",
+            f"device_{ID_SUFFIX}",
         ],
         registry=registry,
     ),
@@ -31,15 +42,15 @@ metric = {
         "hass_device_battery_remaining",
         "The remaining percentage of device battery",
         [
-            "device_id",
+            f"device_{ID_SUFFIX}",
         ],
         registry=registry,
     ),
     "hass_esphome_device_signal_strength": Gauge(
         "hass_esphome_device_signal_strength",
-        "ESPHome device signal strength with information about connected Access Point",
+        "ESPHome device signal strength with information about connected WiFi AP",
         [
-            "device_id",
+            f"device_{ID_SUFFIX}",
             "bssid",
             "essid",
         ],
@@ -49,17 +60,40 @@ metric = {
         "hass_esphome_device_uptime",
         "Number of seconds the device is running",
         [
-            "device_id",
+            f"device_{ID_SUFFIX}",
+        ],
+        registry=registry,
+    ),
+    "hass_zha_device_info": Gauge(
+        "hass_zha_device_info",
+        "General information about the Zigbee device",
+        [
+            f"device_{ID_SUFFIX}",
+            "power_source",
+            "device_type",
+        ],
+        registry=registry,
+    ),
+    "hass_zha_device_lqi": Gauge(
+        "hass_zha_device_lqi",
+        "The link quality indicator (LQI) of the Zigbee device is an indication of the quality of the data packets received by the receiver.",
+        [
+            f"device_{ID_SUFFIX}",
+        ],
+        registry=registry,
+    ),
+    "hass_zha_device_rssi": Gauge(
+        "hass_zha_device_rssi",
+        "Received signal strength indicator (RSSI) of the Zigbee device is a measurement of the power present in a received radio signal.",
+        [
+            f"device_{ID_SUFFIX}",
         ],
         registry=registry,
     ),
     "hass_zha_mesh_lqi": Gauge(
         "hass_zha_mesh_lqi",
-        "LQI info of neighbouring devices connected to the Zigbee device",
-        [
-            "source_ieee",
-            "target_ieee"
-        ],
+        "The link quality indicator (LQI) of the entire Zigbee mesh network",
+        ["source_ieee", "target_ieee"],
         registry=registry,
     ),
     "hass_entity_info": Gauge(
@@ -68,8 +102,8 @@ metric = {
         [
             "entity_id",
             "entity_name",
-            "area_id",
-            "device_id",
+            f"area_{ID_SUFFIX}",
+            f"device_{ID_SUFFIX}",
             "class",
             "unit",
         ],
@@ -79,7 +113,7 @@ metric = {
         "hass_entity_value",
         "Value of the entity.",
         [
-            "entity_id",
+            f"entity_{ID_SUFFIX}",
         ],
         registry=registry,
     ),
@@ -87,7 +121,7 @@ metric = {
         "hass_entity_available",
         "Availability of the entity value.",
         [
-            "entity_id",
+            f"entity_{ID_SUFFIX}",
         ],
         registry=registry,
     ),
@@ -95,7 +129,7 @@ metric = {
         "hass_entity_last_change",
         "Last time the entity value has changed.",
         [
-            "entity_id",
+            f"entity_{ID_SUFFIX}",
         ],
         registry=registry,
     ),
@@ -103,7 +137,7 @@ metric = {
         "hass_entity_last_update",
         "Last time the entity value has been updated.",
         [
-            "entity_id",
+            f"entity_{ID_SUFFIX}",
         ],
         registry=registry,
     ),
