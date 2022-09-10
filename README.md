@@ -95,5 +95,6 @@ Device MAC address gets propagated to `identifier` label in `hass_device_info` m
 
 | Metric name| Metric type | Description | Unit | Labels/tags |
 | ---------- | ----------- | ----------- | ---- | ----------- |
-| hass_entity_info | Gauge | General information about the entity | | `entity_id` <br> `entity_name` <br> `area_id`=&lt;area-id&gt; <br> `device_id` |
-| hass_entity_info | Gauge | General information about the entity | | `entity_id` <br> `entity_name` <br> `area_id`=&lt;area-id&gt; <br> `device_id` |
+| hass_entity_info | Gauge | General information about the entity | | `entity_id` <br> `entity_name` <br> `area_id` <br> `device_id` |
+| hass_entity_last_change | Gauge | Last time the entity value has changed | s | `entity_id` |
+| hass_entity_last_update | Gauge | Last time the entity value has been updated | s | `entity_id` |

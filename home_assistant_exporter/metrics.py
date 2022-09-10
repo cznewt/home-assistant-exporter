@@ -76,7 +76,7 @@ metric = {
     ),
     "hass_zha_device_lqi": Gauge(
         "hass_zha_device_lqi",
-        "The link quality indicator (LQI) of the Zigbee device is an indication of the quality of the data packets received by the receiver.",
+        "The link quality indicator (LQI) of the Zigbee device is an indication of the quality of the data packets received by the receiver",
         [
             f"device_{ID_SUFFIX}",
         ],
@@ -84,7 +84,7 @@ metric = {
     ),
     "hass_zha_device_rssi": Gauge(
         "hass_zha_device_rssi",
-        "Received signal strength indicator (RSSI) of the Zigbee device is a measurement of the power present in a received radio signal.",
+        "Received signal strength indicator (RSSI) of the Zigbee device is a measurement of the power present in a received radio signal",
         [
             f"device_{ID_SUFFIX}",
         ],
@@ -98,7 +98,7 @@ metric = {
     ),
     "hass_entity_info": Gauge(
         "hass_entity_info",
-        "Information about the entity.",
+        "Information about the entity",
         [
             "entity_id",
             "entity_name",
@@ -111,7 +111,7 @@ metric = {
     ),
     "hass_entity_value": Gauge(
         "hass_entity_value",
-        "Value of the entity.",
+        "Value of the entity",
         [
             f"entity_{ID_SUFFIX}",
         ],
@@ -119,7 +119,7 @@ metric = {
     ),
     "hass_entity_available": Gauge(
         "hass_entity_available",
-        "Availability of the entity value.",
+        "Availability of the entity value",
         [
             f"entity_{ID_SUFFIX}",
         ],
@@ -127,7 +127,7 @@ metric = {
     ),
     "hass_entity_last_change": Gauge(
         "hass_entity_last_change",
-        "Last time the entity value has changed.",
+        "Last time the entity value has changed",
         [
             f"entity_{ID_SUFFIX}",
         ],
@@ -135,7 +135,7 @@ metric = {
     ),
     "hass_entity_last_update": Gauge(
         "hass_entity_last_update",
-        "Last time the entity value has been updated.",
+        "Last time the entity value has been updated",
         [
             f"entity_{ID_SUFFIX}",
         ],
