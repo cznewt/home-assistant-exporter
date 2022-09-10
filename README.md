@@ -71,7 +71,7 @@ Device MAC address gets propagated to `identifier` label in `hass_device_info` m
 
 | Metric name| Metric type | Description | Unit | Labels/tags |
 | ---------- | ----------- | ----------- | ---- | ----------- |
-| hass_device_info | Gauge | General information about the device | | `device_id` <br> `device_name` <br> `manufacturer` <br> `model` <br> `sw_version`=&lt;sw-version&gt; <br> `hw_version` |
+| hass_device_info | Gauge | General information about the device | | `device_id` <br> `device_name` <br> `manufacturer` <br> `model` <br> `sw_version` <br> `hw_version` |
 | hass_device_last_activity | Counter | Last update time of entities connected to the device | s | `device_id` |
 | hass_device_battery_remaining | Gauge | The remaining percentage of device battery | % | `device_id` |
 
