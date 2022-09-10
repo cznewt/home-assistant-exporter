@@ -12,9 +12,25 @@ Metrics exporter providing [Home Assistant](https://www.home-assistant.io/) diag
 
 Use docker image to run and provide HASS credentials.
 
+```
+Home Assistant Exporter
+
+options:
+  -h, --help            show this help message and exit
+  --debug               Log with debug level
+  --home-assistant.url HASS_URL
+                        The URL address of target Home Assistant service.
+  --home-assistant.token HASS_TOKEN
+                        The long-lived API token of target Home Assistant service.
+  --web.listen-port WEB_PORT
+                        The port on which to expose the web interface and generated Prometheus metrics.
+  --web.telemetry-path WEB_PATH
+                        Path under which to expose metrics.
+```
+
 ### ESPHome device config
 
-To get diagnostic information for ESPHome devices we need to have some sensors defined in their configuration.
+To get diagnostic information for ESPHome devices you need to enable some sensors in ESPhome device configuration.
 
 ```yaml
 esphome:
@@ -55,7 +71,7 @@ Device MAC address gets propagated to `identifier` label in `hass_device_info` m
 | Metric name| Metric type | Description | Unit | Labels/tags |
 | ---------- | ----------- | ----------- | ---- | ----------- |
 | hass_device_info | Gauge | General information about the device | | `manufacturer`=&lt;manufacturer&gt; <br> `model`=&lt;model-version&gt; <br> `sw_version`=&lt;sw-version&gt; <br> `hw_version`=&lt;hw-version&gt; <br> `device_id`=&lt;device-id&gt;  <br> `device_name`=&lt;device-name&gt; |
-| hass_device_last_seen | Counter | Last update time of entities connected to the device | s | `device_id`=&lt;device-id&gt; |
+| hass_device_last_activity | Counter | Last update time of entities connected to the device | s | `device_id`=&lt;device-id&gt; |
 | hass_device_battery_remaining | Gauge | The remaining percentage of device battery | % | `device_id`=&lt;device-id&gt; |
 
 
@@ -79,4 +95,4 @@ Device MAC address gets propagated to `identifier` label in `hass_device_info` m
 
 | Metric name| Metric type | Description | Unit | Labels/tags |
 | ---------- | ----------- | ----------- | ---- | ----------- |
-| hass_entity_info | Gauge | General information about the entity | | `area_id`=&lt;area-id&gt; <br> `device_id`=&lt;device-id&gt; <br> `entity_id`=&lt;entity-id&gt; <br> `entity_name`=&lt;entity-name&gt; |
+| hass_entity_info | Gauge | General information about the entity | | `entity_id`=&lt;entity-id&gt; <br> `entity_name`=&lt;entity-name&gt; <br> `area_id`=&lt;area-id&gt; <br> `device_id`=&lt;device-id&gt; |

@@ -24,29 +24,34 @@ def get_arguments() -> argparse.Namespace:
     """Get parsed passed in arguments."""
 
     parser = argparse.ArgumentParser(
-        description="Home Assistant simple client for Python"
+        description="Home Assistant Exporter"
     )
     parser.add_argument("--debug", action="store_true", help="Log with debug level")
     parser.add_argument(
-        "url",
+        "--home-assistant.url",
         type=str,
-        help="URL of server, ie http://homeassistant:8123",
-        nargs="?",
-        const=None,
+        help="The URL address of target Home Assistant service.",
+        dest="hass_url",
     )
     parser.add_argument(
-        "token",
+        "--home-assistant.token",
         type=str,
-        help="Long Lived Token",
-        nargs="?",
-        const=None,
+        help="The long-lived API token of target Home Assistant service.",
+        dest="hass_token",
     )
     parser.add_argument(
-        "suffix",
+        "--web.listen-port",
+        type=int,
+        help="The port on which to expose the web interface and generated Prometheus metrics.",
+        default=8080,
+        dest="web_port",
+    )
+    parser.add_argument(
+        "--web.telemetry-path",
         type=str,
-        help="ID suffix (`id` or `name`)",
-        nargs="?",
-        const=None,
+        help="Path under which to expose metrics.",
+        default="/metrics",
+        dest="web_path",
     )
     arguments = parser.parse_args()
     return arguments
@@ -61,9 +66,15 @@ async def start_cli() -> None:
         await connect(args, session)
 
 
-async def metrics(request):
+async def metrics_handler(request):
     metrics = generate_latest(registry)
     return web.Response(text=metrics.decode("utf-8"))
+
+
+async def device_registry_handler(request):
+
+    # return web.Response(text=metrics.decode("utf-8"))
+    return web.json_response(device_registry)
 
 
 async def home(request):
@@ -172,7 +183,7 @@ async def init_metrics(hass):
         entity_registry[id] = entity
         if entity.get("device_id", None) in device_registry:
             device_registry[entity["device_id"]]["entities"].append(entity)
-            device_registry[entity["device_id"]]["last_seen"] = entity.get(
+            device_registry[entity["device_id"]]["last_activity"] = entity.get(
                 "last_changed", None
             )
         try:
@@ -191,9 +202,9 @@ async def init_metrics(hass):
             LOGGER.warning(f"Could not set {id} - {e}")
 
     for id, device in device_registry.items():
-        if "last_seen" in device and device["last_seen"] != None:
-            metric["hass_device_last_seen"].labels(device_id=id).set(
-                datetime.fromisoformat(device["last_seen"]).timestamp()
+        if "last_activity" in device and device["last_activity"] != None:
+            metric["hass_device_last_activity"].labels(device_id=id).set(
+                datetime.fromisoformat(device["last_activity"]).timestamp()
             )
 
     # LOGGER.warning(device_registry)
@@ -201,7 +212,7 @@ async def init_metrics(hass):
 
 async def connect(args: argparse.Namespace, session: ClientSession) -> None:
     """Connect to the server."""
-    async with HomeAssistantClient(args.url, args.token, session) as client:
+    async with HomeAssistantClient(args.hass_url, args.hass_token, session) as client:
         client.register_event_callback(log_events)
         await client._request_full_state()
         await init_metrics(client)
@@ -228,14 +239,17 @@ def log_events(hass: HomeAssistantClient, event: str, event_data: dict) -> None:
 
 def main() -> None:
     """Run main."""
+    args = get_arguments()
     app = web.Application()
     app.add_routes([web.get("/", home)])
-    app.add_routes([web.get("/metrics", metrics)])
+    app.add_routes([web.get("/metrics", metrics_handler)])
+    if args.debug:
+        app.add_routes([web.get("/devices", device_registry_handler)])
     loop = asyncio.new_event_loop()
 
     try:
         loop.create_task(start_cli())
-        web.run_app(app, loop=loop)
+        web.run_app(app, loop=loop, port=args.web_port)
         loop.run_forever()
     except KeyboardInterrupt:
         pass

@@ -30,8 +30,8 @@ metric = {
         ],
         registry=registry,
     ),
-    "hass_device_last_seen": Gauge(
-        "hass_device_last_seen",
+    "hass_device_last_activity": Gauge(
+        "hass_device_last_activity",
         "Last time of entities connected to the device were updated",
         [
             f"device_{ID_SUFFIX}",
