@@ -71,29 +71,29 @@ Device MAC address gets propagated to `identifier` label in `hass_device_info` m
 
 | Metric name| Metric type | Description | Unit | Labels/tags |
 | ---------- | ----------- | ----------- | ---- | ----------- |
-| hass_device_info | Gauge | General information about the device | | `device_id`=&lt;device-id&gt; <br> `device_name`=&lt;device-name&gt; <br> `manufacturer`=&lt;manufacturer&gt; <br> `model`=&lt;model-version&gt; <br> `sw_version`=&lt;sw-version&gt; <br> `hw_version`=&lt;hw-version&gt; |
-| hass_device_last_activity | Counter | Last update time of entities connected to the device | s | `device_id`=&lt;device-id&gt; |
-| hass_device_battery_remaining | Gauge | The remaining percentage of device battery | % | `device_id`=&lt;device-id&gt; |
+| hass_device_info | Gauge | General information about the device | | `device_id` <br> `device_name` <br> `manufacturer` <br> `model` <br> `sw_version`=&lt;sw-version&gt; <br> `hw_version` |
+| hass_device_last_activity | Counter | Last update time of entities connected to the device | s | `device_id` |
+| hass_device_battery_remaining | Gauge | The remaining percentage of device battery | % | `device_id` |
 
 ### ESPHome Device Metrics
 
 | Metric name| Metric type | Description | Unit | Labels/tags |
 | ---------- | ----------- | ----------- | ---- | ----------- |
-| hass_esphome_device_uptime | Counter | Number of seconds the device is running | s | `device_id`=&lt;device-id&gt; |
-| hass_esphome_device_signal_strength | Gauge | ESPHome device signal strength with information about connected Access Point | dBm | `device_id`=&lt;device-id&gt; <br> `bssid`=&lt;ap-mac&gt; <br> `essid`=&lt;ap-name&gt; |
+| hass_esphome_device_uptime | Counter | Number of seconds the device is running | s | `device_id` |
+| hass_esphome_device_signal_strength | Gauge | ESPHome device signal strength with information about connected Access Point | dBm | `device_id` <br> `bssid` <br> `essid` |
 
 ### ZHA Device Metrics
 
 | Metric name| Metric type | Description | Unit | Labels/tags |
 | ---------- | ----------- | ----------- | ---- | ----------- |
-| hass_zha_device_info | Gauge | Specific information about the Zigbee device | | `device_id`=&lt;device-id&gt; <br> `device_type`=&lt;device-type&gt; <br> `power_source`=&lt;power-source&gt; |
-| hass_zha_device_lqi | Gauge | The link quality indicator (LQI) of the Zigbee device is an indication of the quality of the data packets received by the receiver. | | `device_id`=&lt;device-id&gt; |
-| hass_zha_device_rssi | Gauge | Received signal strength indicator (RSSI) of the Zigbee device is a measurement of the power present in a received radio signal. | dBm | `device_id`=&lt;device-id&gt; |
+| hass_zha_device_info | Gauge | Specific information about the Zigbee device | | `device_id` <br> `device_type` <br> `power_source` |
+| hass_zha_device_lqi | Gauge | The link quality indicator (LQI) of the Zigbee device is an indication of the quality of the data packets received by the receiver. | | `device_id` |
+| hass_zha_device_rssi | Gauge | Received signal strength indicator (RSSI) of the Zigbee device is a measurement of the power present in a received radio signal. | dBm | `device_id` |
 | hass_zha_mesh_lqi | Gauge | LQI info of neighbouring devices connected to the Zigbee device | | `source_iee`=&lt;ieee&gt; <br> `target_ieee`=&lt;ieee&gt; |
 
 ### Generic Entity Metrics
 
 | Metric name| Metric type | Description | Unit | Labels/tags |
 | ---------- | ----------- | ----------- | ---- | ----------- |
-| hass_entity_info | Gauge | General information about the entity | | `entity_id`=&lt;entity-id&gt; <br> `entity_name`=&lt;entity-name&gt; <br> `area_id`=&lt;area-id&gt; <br> `device_id`=&lt;device-id&gt; |
-| hass_entity_info | Gauge | General information about the entity | | `entity_id`=&lt;entity-id&gt; <br> `entity_name`=&lt;entity-name&gt; <br> `area_id`=&lt;area-id&gt; <br> `device_id`=&lt;device-id&gt; |
+| hass_entity_info | Gauge | General information about the entity | | `entity_id` <br> `entity_name` <br> `area_id`=&lt;area-id&gt; <br> `device_id` |
+| hass_entity_info | Gauge | General information about the entity | | `entity_id` <br> `entity_name` <br> `area_id`=&lt;area-id&gt; <br> `device_id` |
