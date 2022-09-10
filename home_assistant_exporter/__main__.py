@@ -23,21 +23,25 @@ entity_registry = {}
 def get_arguments() -> argparse.Namespace:
     """Get parsed passed in arguments."""
 
-    parser = argparse.ArgumentParser(
-        description="Home Assistant Exporter"
-    )
+    parser = argparse.ArgumentParser(description="Home Assistant Exporter")
     parser.add_argument("--debug", action="store_true", help="Log with debug level")
     parser.add_argument(
-        "--home-assistant.url",
+        "--hass.url",
         type=str,
         help="The URL address of target Home Assistant service.",
         dest="hass_url",
     )
     parser.add_argument(
-        "--home-assistant.token",
+        "--hass.token",
         type=str,
         help="The long-lived API token of target Home Assistant service.",
         dest="hass_token",
+    )
+    parser.add_argument(
+        "--hass.mapping-config",
+        type=str,
+        help="Metric mapping configuration file name.",
+        dest="hass_config",
     )
     parser.add_argument(
         "--web.listen-port",
@@ -173,7 +177,7 @@ async def init_metrics(hass):
                     device_type=device["zha"]["device_type"],
                     power_source=device["zha"]["power_source"],
                 )
-                LOGGER.info(device_registry[id]["zha"])
+                #LOGGER.info(device_registry[id]["zha"])
 
             metric["hass_device_info"].labels(**device_labels).set(1)
 
@@ -206,8 +210,6 @@ async def init_metrics(hass):
             metric["hass_device_last_activity"].labels(device_id=id).set(
                 datetime.fromisoformat(device["last_activity"]).timestamp()
             )
-
-    # LOGGER.warning(device_registry)
 
 
 async def connect(args: argparse.Namespace, session: ClientSession) -> None:
