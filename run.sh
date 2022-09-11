@@ -2,6 +2,6 @@
 
 set -xe
 
-export PYTHONPATH=/exporter
+export PYTHONPATH=/app
 
-python /exporter/home_assistant_exporter/__main__.py
+python /app/home_assistant_exporter/__main__.py

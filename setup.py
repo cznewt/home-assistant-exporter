@@ -2,12 +2,12 @@
 
 from setuptools import setup
 
-VERSION = '0.1'
+VERSION = '0.1.3'
 
 setup(
-    name='home-assistant-exporter',
+    name="home-assistant-exporter",
     version=VERSION,
-    description='',
+    description="",
     license="GPLv3",
-    install_requires=["flask", "prometheus_client", "pyyaml"],
+    install_requires=["aiohttp", "prometheus_client", "pyyaml", "ujson"],
 )

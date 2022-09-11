@@ -2,5 +2,5 @@
 *
 # selectively add specific files/dirs
 !home_assistant_exporter/*
-!config.yml
 !requirements.txt
+!run.sh
