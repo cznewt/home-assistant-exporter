@@ -119,14 +119,14 @@ def _get_device_info_labels(device):
         if device["manufacturer"] in ["espressif", "Espressif Inc."]:
             integration = "esphome"
     return {
-        "device_id": device["id"],
+        "device_id": identifier if identifier is not None else name,
         "device_name": name,
+        "hass_id": device["id"],
         "manufacturer": device["manufacturer"],
         "model": device["model"],
         "sw_version": sw_version,
         "hw_version": hw_version,
         "integration": integration,
-        "identifier": identifier,
     }
 
 
@@ -138,12 +138,15 @@ def _get_entity_info_labels(entity):
         area_id = entity["area_id"]
     if entity.get("device_id", None) == None:
         device_id = ""
+        device_name = ""
     else:
         device_id = entity["device_id"]
+        device_name = device_registry[device_id]["name"]
 
     return {
         "area_id": area_id,
         "device_id": device_id,
+        "device_name": device_name,
         "entity_id": entity["entity_id"],
         "entity_name": attrs.get("friendly_name", entity["entity_id"]),
         "class": attrs.get("device_class", ""),
@@ -162,22 +165,35 @@ async def init_metrics(hass):
         device_labels = _get_device_info_labels(device)
         if device_labels["integration"] not in FORBIDDEN_INTEGRATIONS:
             device_registry[id] = device
+            device_registry[id]["labels"] = device_labels
             device_registry[id]["entities"] = []
             if device_labels["integration"] == "zha":
                 device_registry[id]["zha"] = hass.zha_device_registry[
-                    device_labels["identifier"]
+                    device_labels["device_id"]
                 ]
+                metric["hass_device_available"].labels(
+                    device_id=device_labels["device_id"], device_name=device_labels["device_name"]
+                ).set(1 if device["zha"]["available"] else 0)
                 for neighbor in device_registry[id]["zha"].get("neighbors", []):
                     metric["hass_zha_mesh_lqi"].labels(
-                        source_ieee=device_labels["identifier"],
+                        source_ieee=device_labels["device_id"],
                         target_ieee=neighbor["ieee"],
                     ).set(neighbor["lqi"])
                 metric["hass_zha_device_info"].labels(
-                    device_id=device_labels["identifier"],
+                    device_id=device_labels["device_id"],
+                    device_name=device_labels["device_name"],
                     device_type=device["zha"]["device_type"],
                     power_source=device["zha"]["power_source"],
-                )
-                #LOGGER.info(device_registry[id]["zha"])
+                ).set(1)
+                if device["zha"]["lqi"] is not None:
+                    metric["hass_zha_device_lqi"].labels(
+                        device_id=device_labels["device_id"], device_name=device_labels["device_name"]
+                    ).set(device["zha"]["lqi"])
+                if device["zha"]["rssi"] is not None:
+                    metric["hass_zha_device_rssi"].labels(
+                        device_id=device_labels["device_id"], device_name=device_labels["device_name"]
+                    ).set(device["zha"]["rssi"])
+                LOGGER.info(device["zha"]["available"])
 
             metric["hass_device_info"].labels(**device_labels).set(1)
 
@@ -192,7 +208,6 @@ async def init_metrics(hass):
             )
         try:
             labels = _get_entity_info_labels(entity)
-            # LOGGER.warning(labels)
             metric["hass_entity_info"].labels(**labels).set(1)
             metric["hass_entity_last_update"].labels(entity_id=id).set(
                 datetime.fromisoformat(entity["last_updated"]).timestamp()
@@ -207,9 +222,9 @@ async def init_metrics(hass):
 
     for id, device in device_registry.items():
         if "last_activity" in device and device["last_activity"] != None:
-            metric["hass_device_last_activity"].labels(device_id=id).set(
-                datetime.fromisoformat(device["last_activity"]).timestamp()
-            )
+            metric["hass_device_last_activity"].labels(
+                device_id=device_labels["device_id"], device_name=device_registry[id]["labels"]['device_name']
+            ).set(datetime.fromisoformat(device["last_activity"]).timestamp())
 
 
 async def connect(args: argparse.Namespace, session: ClientSession) -> None:

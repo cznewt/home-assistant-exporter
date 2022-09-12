@@ -3,8 +3,6 @@ from prometheus_client import CollectorRegistry
 
 registry = CollectorRegistry()
 
-ID_SUFFIX = "id"
-
 metric = {
     "hass_area_info": Gauge(
         "hass_area_info",
@@ -21,20 +19,27 @@ metric = {
         [
             "device_id",
             "device_name",
+            "hass_id",
             "manufacturer",
             "model",
             "sw_version",
             "hw_version",
             "integration",
-            "identifier",
         ],
+        registry=registry,
+    ),
+    "hass_device_available": Gauge(
+        "hass_device_available",
+        "Availability of the device",
+        ["device_id", "device_name"],
         registry=registry,
     ),
     "hass_device_last_activity": Gauge(
         "hass_device_last_activity",
         "Last time of entities connected to the device were updated",
         [
-            f"device_{ID_SUFFIX}",
+            "device_id",
+            "device_name",
         ],
         registry=registry,
     ),
@@ -42,7 +47,8 @@ metric = {
         "hass_device_battery_remaining",
         "The remaining percentage of device battery",
         [
-            f"device_{ID_SUFFIX}",
+            "device_id",
+            "device_name",
         ],
         registry=registry,
     ),
@@ -50,7 +56,8 @@ metric = {
         "hass_esphome_device_signal_strength",
         "ESPHome device signal strength with information about connected WiFi AP",
         [
-            f"device_{ID_SUFFIX}",
+            "device_id",
+            "device_name",
             "bssid",
             "essid",
         ],
@@ -60,7 +67,8 @@ metric = {
         "hass_esphome_device_uptime",
         "Number of seconds the device is running",
         [
-            f"device_{ID_SUFFIX}",
+            "device_id",
+            "device_name",
         ],
         registry=registry,
     ),
@@ -68,7 +76,8 @@ metric = {
         "hass_zha_device_info",
         "General information about the Zigbee device",
         [
-            f"device_{ID_SUFFIX}",
+            "device_id",
+            "device_name",
             "power_source",
             "device_type",
         ],
@@ -77,17 +86,13 @@ metric = {
     "hass_zha_device_lqi": Gauge(
         "hass_zha_device_lqi",
         "The link quality indicator (LQI) of the Zigbee device is an indication of the quality of the data packets received by the receiver",
-        [
-            f"device_{ID_SUFFIX}",
-        ],
+        ["device_id", "device_name"],
         registry=registry,
     ),
     "hass_zha_device_rssi": Gauge(
         "hass_zha_device_rssi",
         "Received signal strength indicator (RSSI) of the Zigbee device is a measurement of the power present in a received radio signal",
-        [
-            f"device_{ID_SUFFIX}",
-        ],
+        ["device_id", "device_name"],
         registry=registry,
     ),
     "hass_zha_mesh_lqi": Gauge(
@@ -102,8 +107,9 @@ metric = {
         [
             "entity_id",
             "entity_name",
-            f"area_{ID_SUFFIX}",
-            f"device_{ID_SUFFIX}",
+            "area_id",
+            "device_id",
+            "device_name",
             "class",
             "unit",
         ],
@@ -113,7 +119,7 @@ metric = {
         "hass_entity_value",
         "Value of the entity",
         [
-            f"entity_{ID_SUFFIX}",
+            "entity_id",
         ],
         registry=registry,
     ),
@@ -121,7 +127,7 @@ metric = {
         "hass_entity_available",
         "Availability of the entity value",
         [
-            f"entity_{ID_SUFFIX}",
+            "entity_id",
         ],
         registry=registry,
     ),
@@ -129,7 +135,7 @@ metric = {
         "hass_entity_last_change",
         "Last time the entity value has changed",
         [
-            f"entity_{ID_SUFFIX}",
+            "entity_id",
         ],
         registry=registry,
     ),
@@ -137,7 +143,7 @@ metric = {
         "hass_entity_last_update",
         "Last time the entity value has been updated",
         [
-            f"entity_{ID_SUFFIX}",
+            "entity_id",
         ],
         registry=registry,
     ),
