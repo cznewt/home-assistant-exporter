@@ -36,7 +36,7 @@ metric = {
     ),
     "hass_device_last_activity": Gauge(
         "hass_device_last_activity",
-        "Last time of entities connected to the device were updated",
+        "Last time when entities connected to the device were updated",
         [
             "device_id",
             "device_name",
@@ -52,14 +52,42 @@ metric = {
         ],
         registry=registry,
     ),
-    "hass_esphome_device_signal_strength": Gauge(
-        "hass_esphome_device_signal_strength",
-        "ESPHome device signal strength with information about connected WiFi AP",
+    "hass_device_battery_voltage": Gauge(
+        "hass_device_battery_voltage",
+        "The remaining voltage of device battery",
+        [
+            "device_id",
+            "device_name",
+        ],
+        registry=registry,
+    ),
+    "hass_device_ip_address": Gauge(
+        "hass_device_ip_address",
+        "IP address of the device",
+        [
+            "device_id",
+            "device_name",
+            "ip_address",
+        ],
+        registry=registry,
+    ),
+    "hass_esphome_device_info": Gauge(
+        "hass_esphome_device_info",
+        "ESPHome device info and information about connected WiFi AP",
         [
             "device_id",
             "device_name",
             "bssid",
             "essid",
+        ],
+        registry=registry,
+    ),
+    "hass_esphome_device_rssi": Gauge(
+        "hass_esphome_device_rssi",
+        "Received signal strength indicator (RSSI) of the ESPHome device",
+        [
+            "device_id",
+            "device_name",
         ],
         registry=registry,
     ),
@@ -85,13 +113,13 @@ metric = {
     ),
     "hass_zha_device_lqi": Gauge(
         "hass_zha_device_lqi",
-        "The link quality indicator (LQI) of the Zigbee device is an indication of the quality of the data packets received by the receiver",
+        "The link quality indicator (LQI) of the Zigbee device",
         ["device_id", "device_name"],
         registry=registry,
     ),
     "hass_zha_device_rssi": Gauge(
         "hass_zha_device_rssi",
-        "Received signal strength indicator (RSSI) of the Zigbee device is a measurement of the power present in a received radio signal",
+        "Received signal strength indicator (RSSI) of the Zigbee device",
         ["device_id", "device_name"],
         registry=registry,
     ),
@@ -108,6 +136,7 @@ metric = {
             "entity_id",
             "entity_name",
             "area_id",
+            # "area_name",
             "device_id",
             "device_name",
             "class",

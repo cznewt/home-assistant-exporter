@@ -71,22 +71,25 @@ Device MAC address gets propagated to `identifier` label in `hass_device_info` m
 
 | Metric name| Metric type | Description | Unit | Labels/tags |
 | ---------- | ----------- | ----------- | ---- | ----------- |
-| hass_device_info | Gauge | General information about the device | | `device_id` <br> `device_name` <br> `manufacturer` <br> `model` <br> `sw_version` <br> `hw_version` |
-| hass_device_last_activity | Counter | Last update time of entities connected to the device | s | `device_id` |
-| hass_device_battery_remaining | Gauge | The remaining percentage of device battery | % | `device_id` |
+| hass_device_info | Info | General information about the device | | `device_id` <br> `device_name` <br> `manufacturer` <br> `model` <br> `sw_version` <br> `hw_version` |
+| hass_device_last_activity | Counter | Last update time of entities connected to the device | s | `device_id` <br> `device_name` |
+| hass_device_battery_remaining | Gauge | The remaining percentage of device battery | % | `device_id` <br> `device_name` |
+| hass_device_battery_voltage | Gauge | The remaining voltage of device battery | V | `device_id` <br> `device_name` |
+| hass_device_ip_address | Info | IP address of the device | | `device_id` <br> `device_name` <br> `ip_address` |
 
 ### ESPHome Device Metrics
 
 | Metric name| Metric type | Description | Unit | Labels/tags |
 | ---------- | ----------- | ----------- | ---- | ----------- |
-| hass_esphome_device_uptime | Counter | Number of seconds the device is running | s | `device_id` |
-| hass_esphome_device_signal_strength | Gauge | ESPHome device signal strength with information about connected Access Point | dBm | `device_id` <br> `bssid` <br> `essid` |
+| hass_esphome_device_info | Info | ESPHome device info and information about connected WiFi AP | dBm | `device_id` <br> `device_name` <br> `bssid` <br> `essid` |
+| hass_esphome_device_uptime | Counter | Number of seconds the device is running | s | `device_id` <br> `device_name` |
+| hass_esphome_device_rssi | Gauge | Received signal strength indicator (RSSI) of the ESPHome device | dBm | `device_id` <br> `device_name` |
 
 ### ZHA Device Metrics
 
 | Metric name| Metric type | Description | Unit | Labels/tags |
 | ---------- | ----------- | ----------- | ---- | ----------- |
-| hass_zha_device_info | Gauge | Specific information about the Zigbee device | | `device_id` <br> `device_type` <br> `power_source` |
+| hass_zha_device_info | Info | Specific information about the Zigbee device | | `device_id` <br> `device_name` <br> `device_type` <br> `power_source` |
 | hass_zha_device_lqi | Gauge | The link quality indicator (LQI) of the Zigbee device is an indication of the quality of the data packets received by the receiver | | `device_id` |
 | hass_zha_device_rssi | Gauge | Received signal strength indicator (RSSI) of the Zigbee device is a measurement of the power present in a received radio signal | dBm | `device_id` |
 | hass_zha_mesh_lqi | Gauge | LQI info of neighbouring devices connected to the Zigbee device | | `source_iee` <br> `target_ieee` |
@@ -95,6 +98,6 @@ Device MAC address gets propagated to `identifier` label in `hass_device_info` m
 
 | Metric name| Metric type | Description | Unit | Labels/tags |
 | ---------- | ----------- | ----------- | ---- | ----------- |
-| hass_entity_info | Gauge | General information about the entity | | `entity_id` <br> `entity_name` <br> `area_id` <br> `device_id` |
+| hass_entity_info | Info | General information about the entity | | `entity_id` <br> `entity_name` <br> `area_id` <br> `device_id` <br> `device_name` <br> `unit` |
 | hass_entity_last_change | Gauge | Last time the entity value has changed | s | `entity_id` |
 | hass_entity_last_update | Gauge | Last time the entity value has been updated | s | `entity_id` |

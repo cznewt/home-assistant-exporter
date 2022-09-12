@@ -3,7 +3,9 @@
 import argparse
 import asyncio
 import logging
+from sre_compile import isstring
 import sys
+from yaml import load, dump
 from datetime import datetime
 from aiohttp import web, ClientSession
 
@@ -14,7 +16,14 @@ from prometheus_client import generate_latest
 LOGGER = logging.getLogger(__package__)
 
 ALLOWED_DOMAINS = ["sensor", "binary_sensor"]
-FORBIDDEN_INTEGRATIONS = ["adguard", "met", "moon", "hassio", "garbage_collection"]
+FORBIDDEN_INTEGRATIONS = [
+    "adguard",
+    "met",
+    "moon",
+    "hassio",
+    "garbage_collection",
+    "dlna_dmr",
+]
 
 device_registry = {}
 entity_registry = {}
@@ -140,8 +149,10 @@ def _get_entity_info_labels(entity):
         device_id = ""
         device_name = ""
     else:
-        device_id = entity["device_id"]
-        device_name = device_registry[device_id]["name"]
+        device_id = device_registry[entity.get("device_id")]["labels"][
+            "device_id"
+        ]
+        device_name = device_registry[entity.get("device_id")]["labels"]["device_name"]
 
     return {
         "area_id": area_id,
@@ -152,6 +163,14 @@ def _get_entity_info_labels(entity):
         "class": attrs.get("device_class", ""),
         "unit": entity.get("unit_of_measurement", attrs.get("unit_of_measurement", "")),
     }
+
+
+def _get_entity_by_ids(entities, ids):
+    for entity in entities:
+        for id in ids:
+            if entity["entity_id"].endswith(id):
+                return entity
+    return False
 
 
 async def init_metrics(hass):
@@ -196,9 +215,7 @@ async def init_metrics(hass):
                         device_id=device_labels["device_id"],
                         device_name=device_labels["device_name"],
                     ).set(device["zha"]["rssi"])
-                LOGGER.info(device["zha"]["available"])
-
-            metric["hass_device_info"].labels(**device_labels).set(1)
+                # LOGGER.info(device["zha"])
 
     for id, entity in hass.get_all_entities().items():
         if id.split(".")[0] not in ALLOWED_DOMAINS:
@@ -226,9 +243,31 @@ async def init_metrics(hass):
     for id, device in device_registry.items():
         if "last_activity" in device and device["last_activity"] != None:
             metric["hass_device_last_activity"].labels(
-                device_id=device_labels["device_id"],
-                device_name=device_registry[id]["labels"]["device_name"],
+                device_id=device["labels"]["device_id"],
+                device_name=device["labels"]["device_name"],
             ).set(datetime.fromisoformat(device["last_activity"]).timestamp())
+
+        if device["labels"]["integration"] == "esphome":
+            entity_mac_address = _get_entity_by_ids(device["entities"], ["mac_address"])
+            if entity_mac_address:
+                device["labels"]["device_id"] = entity_mac_address["state"]
+
+            entity_ap_essid = _get_entity_by_ids(device["entities"], ["bssid"])
+            entity_ap_bssid = _get_entity_by_ids(device["entities"], ["essid"])
+            entity_wifi_signal = _get_entity_by_ids(device["entities"], ["wifi_signal"])
+
+            if entity_mac_address:
+                device["labels"]["device_id"] = entity_mac_address["state"]
+
+        entity_battery = _get_entity_by_ids(device["entities"], ["battery"])
+        if entity_battery:
+            # LOGGER.warning(entity_battery)
+            if entity_battery["state"] != "unavailable":
+                metric["hass_device_battery_remaining"].labels(
+                    device_id=device["labels"]["device_id"],
+                    device_name=device["labels"]["device_name"],
+                ).set(entity_battery["state"])
+        metric["hass_device_info"].labels(**device["labels"]).set(1)
 
 
 async def connect(args: argparse.Namespace, session: ClientSession) -> None:
