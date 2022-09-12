@@ -98,7 +98,7 @@ metric = {
     "hass_zha_mesh_lqi": Gauge(
         "hass_zha_mesh_lqi",
         "The link quality indicator (LQI) of the entire Zigbee mesh network",
-        ["source_ieee", "target_ieee"],
+        ["source_id", "target_id"],
         registry=registry,
     ),
     "hass_entity_info": Gauge(
