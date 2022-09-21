@@ -67,6 +67,8 @@ Device MAC address gets propagated to `identifier` label in `hass_device_info` m
 
 ## Provided Metrics
 
+The `Info` metric type is a `Gauge` metric type with value of `1` that adds some additional information (labels).
+
 ### Generic Device Metrics
 
 | Metric name| Metric type | Description | Unit | Labels/tags |
@@ -90,8 +92,8 @@ Device MAC address gets propagated to `identifier` label in `hass_device_info` m
 | Metric name| Metric type | Description | Unit | Labels/tags |
 | ---------- | ----------- | ----------- | ---- | ----------- |
 | hass_zha_device_info | Info | Specific information about the Zigbee device | | `device_id` <br> `device_name` <br> `device_type` <br> `power_source` |
-| hass_zha_device_lqi | Gauge | The link quality indicator (LQI) of the Zigbee device is an indication of the quality of the data packets received by the receiver | | `device_id` |
-| hass_zha_device_rssi | Gauge | Received signal strength indicator (RSSI) of the Zigbee device is a measurement of the power present in a received radio signal | dBm | `device_id` |
+| hass_zha_device_lqi | Gauge | The link quality indicator (LQI) of the Zigbee device is an indication of the quality of the data packets received by the receiver | | `device_id` <br> `device_name` |
+| hass_zha_device_rssi | Gauge | Received signal strength indicator (RSSI) of the Zigbee device is a measurement of the power present in a received radio signal | dBm | `device_id` <br> `device_name` |
 | hass_zha_mesh_lqi | Gauge | LQI info of neighbouring devices connected to the Zigbee device | | `source_iee` <br> `target_ieee` |
 
 ### Generic Entity Metrics

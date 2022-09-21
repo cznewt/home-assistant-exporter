@@ -149,9 +149,7 @@ def _get_entity_info_labels(entity):
         device_id = ""
         device_name = ""
     else:
-        device_id = device_registry[entity.get("device_id")]["labels"][
-            "device_id"
-        ]
+        device_id = device_registry[entity.get("device_id")]["labels"]["device_id"]
         device_name = device_registry[entity.get("device_id")]["labels"]["device_name"]
 
     return {

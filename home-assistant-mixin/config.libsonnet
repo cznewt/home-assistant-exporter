@@ -1,5 +1,6 @@
 {
   _config+:: {
-    hassZhaSignalAlerts: false,
+    hassZhaAlerts: true,
+    hassEsphomeAlerts: true,
   },
 }
