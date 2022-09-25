@@ -2,7 +2,7 @@
 
 from setuptools import setup
 
-VERSION = '0.1.4'
+VERSION = '0.1.6'
 
 setup(
     name="home-assistant-exporter",

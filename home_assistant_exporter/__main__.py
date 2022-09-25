@@ -58,7 +58,7 @@ def get_arguments() -> argparse.Namespace:
         "--web.listen-port",
         type=int,
         help="The port on which to expose the web interface and generated Prometheus metrics.",
-        default=8080,
+        default=9878,
         dest="web_port",
     )
     parser.add_argument(
