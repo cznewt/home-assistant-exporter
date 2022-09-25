@@ -8,10 +8,12 @@ import sys
 from yaml import load, dump
 from datetime import datetime
 from aiohttp import web, ClientSession
-
+from time import sleep
+from aiohttp.client_exceptions import ClientConnectorError
 from home_assistant_exporter.client import HomeAssistantClient
 from home_assistant_exporter.metrics import metric, registry
 from prometheus_client import generate_latest
+from home_assistant_exporter.exceptions import CannotConnect
 
 LOGGER = logging.getLogger(__package__)
 
@@ -76,7 +78,12 @@ async def start_cli() -> None:
     level = logging.DEBUG if args.debug else logging.INFO
     logging.basicConfig(level=level)
     async with ClientSession() as session:
-        await connect(args, session)
+        while True:
+            try:
+                await connect(args, session)
+            except (ClientConnectorError, CannotConnect):
+                LOGGER.warning("Could not connect to HASS server. Next try in 20s.")
+                sleep(20)
 
 
 async def metrics_handler(request):
