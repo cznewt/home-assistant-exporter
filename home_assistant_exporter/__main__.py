@@ -78,12 +78,10 @@ async def start_cli() -> None:
     level = logging.DEBUG if args.debug else logging.INFO
     logging.basicConfig(level=level)
     async with ClientSession() as session:
-        while True:
-            try:
-                await connect(args, session)
-            except (ClientConnectorError, CannotConnect):
-                LOGGER.warning("Could not connect to HASS server. Next try in 20s.")
-                sleep(20)
+        try:
+            await connect(args, session)
+        except (ClientConnectorError, CannotConnect):
+            exit("Could not connect to HASS server")
 
 
 async def metrics_handler(request):
