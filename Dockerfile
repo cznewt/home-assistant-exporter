@@ -1,4 +1,4 @@
-FROM python:3.10-alpine
+FROM python:3.11-alpine
 
 ENV LANG C.UTF-8
 ENV PYTHONUNBUFFERED=1

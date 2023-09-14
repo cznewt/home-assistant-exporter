@@ -1,0 +1,5 @@
+REGISTRY_NAME=docker.io
+IMAGE_NAME=cznewt/home-assistant-exporter
+IMAGE_TAG=2023-r2
+
+BUILD_ARGS=""

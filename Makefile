@@ -1,13 +1,23 @@
+#!make
 
-VERSION:=$(shell grep VERSION setup.py | head -n1 | cut -d"'" -f2)
+include Envfile
+export $(shell sed 's/=.*//' Envfile)
 
-.PHONY: build
-build:
-	echo $(VERSION)
-	docker build -t cznewt/home-assistant-exporter .
-	docker tag cznewt/home-assistant-exporter:latest cznewt/home-assistant-exporter:$(VERSION)
+.PHONY: help
+help:
+	@echo "Available actions:"
+	@echo "  build-container      Build $(REGISTRY_NAME)/$(IMAGE_NAME):$(IMAGE_TAG) docker container image"
+	@echo "  push-container       Publish $(REGISTRY_NAME)/$(IMAGE_NAME):$(IMAGE_TAG) docker container image"
 
-.PHONY: publish
-publish:
-	@docker push cznewt/home-assistant-exporter:$(VERSION)
-	@docker push cznewt/home-assistant-exporter:latest
+.PHONY: all
+all: build-container push-container
+
+.PHONY: build-container
+build-container:
+	@docker run -it --rm=true -v $$(pwd):/source -v /var/lib/containers:/var/lib/containers -v /var/run/docker.sock:/var/run/docker.sock -e SOURCE_PATH="/source" -e BUILD_ARGS=$(BUILD_ARGS) -e REGISTRY_NAME="$(REGISTRY_NAME)" -e IMAGE_NAME="$(IMAGE_NAME)" -e IMAGE_TAG="$(IMAGE_TAG)" cznewt/container-tools:latest docker-build-container
+	@docker run -it --rm=true -v $$(pwd):/source -v /var/lib/containers:/var/lib/containers -v /var/run/docker.sock:/var/run/docker.sock -e SOURCE_PATH="/source" -e REGISTRY_NAME="$(REGISTRY_NAME)" -e IMAGE_NAME="$(IMAGE_NAME)" -e IMAGE_TAG="$(IMAGE_TAG)" -e IMAGE_NEW_TAG="latest" cznewt/container-tools:latest docker-tag-container
+
+.PHONY: push-container
+push-container:
+	@docker run -it --rm=true -v $$(pwd):/source -v /var/lib/containers:/var/lib/containers -v /var/run/docker.sock:/var/run/docker.sock -e SOURCE_PATH="/source" -e REGISTRY_NAME="$(REGISTRY_NAME)" -e REGISTRY_AUTH_CONFIG="$$(cat ~/.docker/config.json)" -e IMAGE_NAME="$(IMAGE_NAME)" -e IMAGE_TAG="$(IMAGE_TAG)" cznewt/container-tools:latest docker-push-container
+	@docker run -it --rm=true -v $$(pwd):/source -v /var/lib/containers:/var/lib/containers -v /var/run/docker.sock:/var/run/docker.sock -e SOURCE_PATH="/source" -e REGISTRY_NAME="$(REGISTRY_NAME)" -e REGISTRY_AUTH_CONFIG="$$(cat ~/.docker/config.json)" -e IMAGE_NAME="$(IMAGE_NAME)" -e IMAGE_TAG="latest" cznewt/container-tools:latest docker-push-container
