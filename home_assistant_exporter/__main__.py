@@ -10,7 +10,7 @@ from datetime import datetime
 from aiohttp import web, ClientSession
 from time import sleep
 from aiohttp.client_exceptions import ClientConnectorError
-from home_assistant_exporter.client import HomeAssistantClient
+from home_assistant_exporter.client2 import HomeAssistantClient
 from home_assistant_exporter.metrics import metric, registry
 from prometheus_client import generate_latest
 from home_assistant_exporter.exceptions import CannotConnect
@@ -78,10 +78,12 @@ async def start_cli() -> None:
     level = logging.DEBUG if args.debug else logging.INFO
     logging.basicConfig(level=level)
     async with ClientSession() as session:
-        try:
-            await connect(args, session)
-        except (ClientConnectorError, CannotConnect):
-            exit("Could not connect to HASS server")
+        while True:
+            try:
+                await connect(args, session)
+            except (ClientConnectorError, CannotConnect):
+                LOGGER.warning("Could not connect to HASS server. Next try in 20s.")
+                sleep(20)
 
 
 async def metrics_handler(request):
@@ -90,7 +92,6 @@ async def metrics_handler(request):
 
 
 async def device_registry_handler(request):
-
     # return web.Response(text=metrics.decode("utf-8"))
     return web.json_response(device_registry)
 
@@ -177,7 +178,6 @@ def _get_entity_by_ids(entities, ids):
 
 
 async def init_metrics(hass):
-
     for id, area in hass.area_registry.items():
         metric["hass_area_info"].labels(
             area_id=area["area_id"], area_name=area["name"]
@@ -276,7 +276,7 @@ async def init_metrics(hass):
 async def connect(args: argparse.Namespace, session: ClientSession) -> None:
     """Connect to the server."""
     async with HomeAssistantClient(args.hass_url, args.hass_token, session) as client:
-        client.register_event_callback(log_events)
+        client.subscribe_events(log_events)
         await client._request_full_state()
         await init_metrics(client)
         await asyncio.sleep(60)
@@ -289,7 +289,6 @@ def log_events(hass: HomeAssistantClient, event: str, event_data: dict) -> None:
     LOGGER.debug(event_data)
 
     if "old_state" and "new_state" in event_data:
-
         entity = hass.get_full_entity(event_data["entity_id"])
         if entity["entity_id"].split(".")[0] in ALLOWED_DOMAINS:
             try:
