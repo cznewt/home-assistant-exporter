@@ -7,7 +7,7 @@ RUN apk update \
     && apk add --update --no-cache python3 g++ && ln -sf python3 /usr/bin/python \
     && python3 -m ensurepip \
     && pip3 install --no-cache --upgrade pip setuptools \
-    && apk add --virtual build-deps gcc python3-dev
+    && apk add --virtual build-deps gcc git python3-dev
 
 COPY requirements.txt ./tmp/
 RUN pip3 install --no-cache-dir -r /tmp/requirements.txt \

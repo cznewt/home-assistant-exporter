@@ -7,6 +7,7 @@ Metrics exporter providing [Home Assistant](https://www.home-assistant.io/) diag
 * Home Assistant [Prometheus intergation](https://www.home-assistant.io/integrations/prometheus/) exposes only entity metrics with no correlation to the devices
 * Home Assistant metrics endpoint requires API token which makes it impossible to use with automated Service Discovery
 * Home Assistant does no provide low-level details for devices
+* Uses https://github.com/marcelveldt/python-hass-client library
 
 ## Usage
 
