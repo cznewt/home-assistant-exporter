@@ -3,4 +3,4 @@
 # selectively add specific files/dirs
 !home_assistant_exporter/*
 !requirements.txt
-!run.sh
+!entrypoint.sh
