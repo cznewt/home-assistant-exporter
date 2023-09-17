@@ -17,7 +17,7 @@ WORKDIR /app
 COPY . .
 
 # Copy data for add-on
-COPY run.sh /
-RUN chmod a+x /run.sh
+COPY entrypoint.sh /
+RUN chmod a+x /entrypoint.sh
 
-CMD [ "/run.sh" ]
+CMD [ "/entrypoint.sh" ]

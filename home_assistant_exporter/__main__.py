@@ -1,9 +1,11 @@
-"""Home Assistant exporter main"""
+"""
+Home Assistant Exporter
+"""
 
 import argparse
 import asyncio
 import logging
-from sre_compile import isstring
+import os
 import sys
 from yaml import load, dump
 from datetime import datetime
@@ -40,12 +42,14 @@ def get_arguments() -> argparse.Namespace:
         "--hass.url",
         type=str,
         help="The URL address of target Home Assistant service.",
+        default=os.environ.get('HASS_URL', None),
         dest="hass_url",
     )
     parser.add_argument(
         "--hass.token",
         type=str,
         help="The long-lived API token of target Home Assistant service.",
+        default=os.environ.get('HASS_TOKEN', None),
         dest="hass_token",
     )
     parser.add_argument(
@@ -82,7 +86,9 @@ async def start_cli() -> None:
             try:
                 await connect(args, session)
             except (ClientConnectorError, CannotConnect):
-                LOGGER.warning("Could not connect to HASS server. Next try in 10 seconds.")
+                LOGGER.warning(
+                    "Could not connect to HASS server. Next try in 10 seconds."
+                )
                 sleep(10)
 
 
@@ -276,7 +282,7 @@ async def init_metrics(hass):
 async def connect(args: argparse.Namespace, session: ClientSession) -> None:
     """Connect to the server."""
     async with HomeAssistantClient(args.hass_url, args.hass_token, session) as client:
-        client.subscribe_events(log_events)
+        #client.subscribe_events(log_events)
         await client._request_full_state()
         await init_metrics(client)
         await asyncio.sleep(60)
@@ -305,8 +311,7 @@ def main() -> None:
     app = web.Application()
     app.add_routes([web.get("/", home)])
     app.add_routes([web.get("/metrics", metrics_handler)])
-    if args.debug:
-        app.add_routes([web.get("/devices", device_registry_handler)])
+    app.add_routes([web.get("/devices", device_registry_handler)])
     loop = asyncio.new_event_loop()
 
     try:
