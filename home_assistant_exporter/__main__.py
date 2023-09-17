@@ -42,14 +42,14 @@ def get_arguments() -> argparse.Namespace:
         "--hass.url",
         type=str,
         help="The URL address of target Home Assistant service.",
-        default=os.environ.get('HASS_URL', None),
+        default=os.environ.get("HASS_URL", None),
         dest="hass_url",
     )
     parser.add_argument(
         "--hass.token",
         type=str,
         help="The long-lived API token of target Home Assistant service.",
-        default=os.environ.get('HASS_TOKEN', None),
+        default=os.environ.get("HASS_TOKEN", None),
         dest="hass_token",
     )
     parser.add_argument(
@@ -87,9 +87,9 @@ async def start_cli() -> None:
                 await connect(args, session)
             except (ClientConnectorError, CannotConnect):
                 LOGGER.warning(
-                    "Could not connect to HASS server. Next try in 10 seconds."
+                    f"Could not connect to Home Asssistant {args.hass_url}. Waiting 5 seconds..."
                 )
-                sleep(10)
+                sleep(5)
 
 
 async def metrics_handler(request):
@@ -195,7 +195,7 @@ async def init_metrics(hass):
             device_registry[id] = device
             device_registry[id]["labels"] = device_labels
             device_registry[id]["entities"] = []
-            if device_labels["integration"] == "zha":
+            if device_labels["integration"] == "zha" and hass.zha_registry_enabled:
                 device_registry[id]["zha"] = hass.zha_device_registry[
                     device_labels["device_id"]
                 ]
@@ -237,17 +237,23 @@ async def init_metrics(hass):
             )
         try:
             labels = _get_entity_info_labels(entity)
-            metric["hass_entity_info"].labels(**labels).set(1)
+            if entity["state"] in ["unavailable", "unknown"]:
+                metric["hass_entity_info"].labels(**labels).set(0)
+            else:
+                metric["hass_entity_info"].labels(**labels).set(1)
+                if labels["unit"] != "":
+                    metric["hass_entity_value"].labels(entity_id=id).set(
+                        entity["state"]
+                    )
+
             metric["hass_entity_last_update"].labels(entity_id=id).set(
                 datetime.fromisoformat(entity["last_updated"]).timestamp()
             )
             metric["hass_entity_last_change"].labels(entity_id=id).set(
                 datetime.fromisoformat(entity["last_changed"]).timestamp()
             )
-            if labels["unit"] != "":
-                metric["hass_entity_value"].labels(entity_id=id).set(entity["state"])
         except Exception as e:
-            LOGGER.warning(f"Could not set {id} - {e}")
+            LOGGER.warning(f"Could not serialize value '{e}' of entity '{id}'.")
 
     for id, device in device_registry.items():
         if "last_activity" in device and device["last_activity"] != None:
@@ -282,7 +288,7 @@ async def init_metrics(hass):
 async def connect(args: argparse.Namespace, session: ClientSession) -> None:
     """Connect to the server."""
     async with HomeAssistantClient(args.hass_url, args.hass_token, session) as client:
-        #client.subscribe_events(log_events)
+        # client.subscribe_events(log_events)
         await client._request_full_state()
         await init_metrics(client)
         await asyncio.sleep(60)
@@ -302,7 +308,7 @@ def log_events(hass: HomeAssistantClient, event: str, event_data: dict) -> None:
                     event_data["new_state"]["state"]
                 )
             except Exception as e:
-                LOGGER.warning(f"Could not set {entity['entity_id']} event_data - {e}")
+                LOGGER.warning(f"Could not set {entity['entity_id']} event_data: {e}")
 
 
 def main() -> None:

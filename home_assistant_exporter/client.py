@@ -1,11 +1,16 @@
+import logging
 from hass_client import HomeAssistantClient
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Union
 
-from hass_client.exceptions import NotConnected
+from hass_client.exceptions import NotConnected, FailedCommand
+
+LOGGER = logging.getLogger(__package__)
+
 
 class HomeAssistantClient(HomeAssistantClient):
     def __init__(self, *args, **kwargs):
         self._states = {}
+        self.zha_registry_enabled = False
         self._zha_device_registry = {}
         self._device_registry = {}
         self._entity_registry = {}
@@ -14,12 +19,7 @@ class HomeAssistantClient(HomeAssistantClient):
 
     async def _request_full_state(self):
         """Request full state."""
-        for item in await self.send_command("zha/devices"):
-            # item_id = item["ieee"]
-            item_id = item["ieee"]
-            # if "00:15:8d:00:04:05:72:6a" == item_id:
-            #     raise Exception(item)
-            self._zha_device_registry[item_id] = item
+
         for item in await self.get_states():
             entity_id = item["entity_id"]
             self._states[entity_id] = item
@@ -33,12 +33,19 @@ class HomeAssistantClient(HomeAssistantClient):
         for item in await self.get_device_registry():
             item_id = item["id"]
             self._device_registry[item_id] = item
+
         # Request entity registry
         for item in await self.get_entity_registry():
             item_id = item["entity_id"]
             self._entity_registry[item_id] = item
-        # Request ZHA device registry
 
+        # Request ZHA device registry
+        try:
+            for item in await self.send_command("zha/devices"):
+                self._zha_device_registry[item["ieee"]] = item
+            self.zha_registry_enabled = True
+        except FailedCommand as e:
+            LOGGER.warning(f"Error executing 'zha/devices' command: {e}")
         # raise Exception(self._entity_registry)
 
     @property
