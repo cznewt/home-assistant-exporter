@@ -1,0 +1,16 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: home-assistant-exporter
+  description: Metrics exporter providing Home Assistant diagnostic metrics.
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+    demo.backstage.io/techdocs-builder: local
+spec:
+  domain: iot
+  type: service
+  consumesApis:
+    - iot:home-assistant-ws-api
+  system: home-assistant
+  lifecycle: production
+  owner: group:iot
