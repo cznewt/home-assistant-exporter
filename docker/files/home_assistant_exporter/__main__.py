@@ -116,7 +116,7 @@ def _get_device_info_labels(device):
     name = device.get("name_by_user") or device.get("name") or ""
     manufacturer = device.get("manufacturer") or ""
     model = device.get("model") or ""
-    identifiers = device.get("identifiers", "")
+    identifiers = device.get("identifiers") or []
     integration = ""
     identifier = ""
     if identifiers != []:

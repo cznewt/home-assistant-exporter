@@ -1,0 +1,3 @@
+prometheus-client==0.21.1
+aiohttp[speedups]>=3.8.4
+hass-client==1.2.3

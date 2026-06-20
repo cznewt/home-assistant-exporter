@@ -1,0 +1,24 @@
+name: Build home-assistant-exporter
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["master"]
+    paths:
+      - docker/**
+      - VERSION
+      - .github/workflows/**
+
+jobs:
+  build-home-assistant-exporter:
+    name: "Build home-assistant-exporter"
+    if: github.ref == 'refs/heads/master'
+    uses: ./.github/workflows/docker-publish.yml
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+    secrets: inherit
+    with:
+      APP_NAME: home-assistant-exporter
+      APP_DIR: docker

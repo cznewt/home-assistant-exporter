@@ -1,6 +1,0 @@
-prometheus-client==0.21.1
-aiohttp>=3.8.4; sys_platform == 'win32'
-aiohttp[speedups]>=3.8.4; sys_platform != 'win32'
-ujson>=4.0.2
-pyyaml>=6.0
-hass-client==1.2.3

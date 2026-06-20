@@ -13,14 +13,27 @@ Metrics exporter providing [Home Assistant](https://www.home-assistant.io/) diag
 
 The exporter connects to Home Assistant over the **websocket API** and serves
 Prometheus metrics on `:9878/metrics`. Provide the target through the `HASS_URL`
-and `HASS_TOKEN` environment variables (or the matching CLI flags):
+and `HASS_TOKEN` environment variables (or the matching CLI flags).
+
+Run the published image:
 
 ```
 docker run --rm -p 9878:9878 \
   -e HASS_URL=ws://homeassistant.local:8123/api/websocket \
   -e HASS_TOKEN=<long-lived-access-token> \
-  cznewt/home-assistant-exporter
+  ghcr.io/cznewt/home-assistant-exporter
 ```
+
+Or with Compose (builds from `docker/`):
+
+```
+HASS_URL=ws://homeassistant.local:8123/api/websocket HASS_TOKEN=<token> \
+  docker compose up --build
+```
+
+On **Home Assistant OS**, install it from the
+[haos-apps](https://github.com/Craftama/haos-apps) add-on repository — the add-on
+is a thin wrapper around this same image.
 
 All options:
 
@@ -119,3 +132,29 @@ in the labels.
 | hass_entity_available | Gauge | Entity availability (`1`/`0`) | | `entity_id` |
 | hass_entity_last_change | Gauge | Last time the entity value changed (unix timestamp) | s | `entity_id` |
 | hass_entity_last_update | Gauge | Last time the entity value was updated (unix timestamp) | s | `entity_id` |
+
+## Build
+
+The container is built from [`docker/`](docker/) (`Dockerfile` + `files/`), and the
+image tag is the contents of [`VERSION`](VERSION). Common tasks are in the
+[`justfile`](justfile):
+
+```
+just build      # docker compose build
+just test       # run the test suite (needs a .venv with the deps)
+just image      # docker build -> ghcr.io/cznewt/home-assistant-exporter:<VERSION> (+ :latest)
+just publish    # build + push to ghcr (run `just login` first)
+```
+
+CI mirrors this: [`ci.yml`](.github/workflows/ci.yml) runs the tests and a
+no-push image build on PRs; pushing to `master` triggers
+[`build.yml`](.github/workflows/build.yml), which publishes the image to ghcr.
+
+Run the full suite inside the built image (the way CI's image build is exercised):
+
+```
+docker run --rm --user root --entrypoint sh \
+  -e PYTHONPATH=/app -v "$PWD/tests:/app/tests:ro" -w /app \
+  ghcr.io/cznewt/home-assistant-exporter \
+  -c "pip install -q pytest && python -m pytest -q tests"
+```
