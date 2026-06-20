@@ -1,4 +1,18 @@
 site_name: Home Assistant Exporter
+site_description: Prometheus exporter for Home Assistant device, entity, area, ZHA and ESPHome diagnostics.
 
-plugins:
-  - techdocs-core
+theme:
+  name: readthedocs
+
+nav:
+  - Home: index.md
+  - Usage:
+    - Configuration: configuration.md
+    - ESPHome: esphome.md
+    - Prometheus: prometheus.md
+  - Reference:
+    - Metrics: metrics.md
+
+markdown_extensions:
+  - toc:
+      permalink: true
