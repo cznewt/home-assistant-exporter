@@ -19,6 +19,7 @@ local config = import './config.libsonnet';
 local panels = import './panels/main.libsonnet';
 local dashboards = import './dashboards.libsonnet';
 local alerts = import './alerts.libsonnet';
+local rules = import './rules.libsonnet';
 
 {
   new(): {
@@ -33,12 +34,13 @@ local alerts = import './alerts.libsonnet';
       ),
     local builtPanels = panels(this.signals),
     local groups = dashboards(builtPanels),
-    local ruleGroups = alerts(this.config),
-    local built = pack.build(this.config, this.signals, groups, ruleGroups),
+    local alertGroups = alerts(this.config),
+    local recordGroups = rules(this.config),
+    local built = pack.build(this.config, this.signals, groups, alertGroups, recordGroups),
     grafana: built.grafana,
     prometheus: {
       alerts: built.prometheus.alerts,
-      recordingRules: {},
+      recordingRules: built.prometheus.rules,
     },
     asMonitoringMixin():: built.asMonitoringMixin(),
   },
