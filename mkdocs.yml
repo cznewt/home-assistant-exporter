@@ -30,8 +30,8 @@ nav:
   - Home: index.md
   - Usage:
     - Configuration: configuration.md
-    - ESPHome: esphome.md
-    - Prometheus: prometheus.md
+    - Devices: devices.md
+    - Integrations: integrations.md
   - Reference:
     - Metrics: metrics.md
 

@@ -11,9 +11,9 @@ over the **websocket API** and exposes device-level diagnostics that work with
 automated service discovery.
 
 - **[Configuration](configuration.md)** — point it at Home Assistant.
+- **[Devices](devices.md)** — per-integration device diagnostics (ESPHome, Zigbee, …).
+- **[Integrations](integrations.md)** — scrape with Prometheus or Grafana Alloy.
 - **[Metrics](metrics.md)** — every metric and its labels.
-- **[ESPHome](esphome.md)** — extra sensors for ESPHome diagnostics.
-- **[Prometheus](prometheus.md)** — how to scrape and alert on it.
 
 ## Run
 
