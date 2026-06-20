@@ -1,0 +1,43 @@
+# home-assistant-observ-lib dev tasks.
+# Rendering is done entirely by observ-viz (its own Grafana v2 gen/) — there is
+# no grafonnet. jb + jsonnet come from the monitor-tools image, so nothing needs
+# to be installed locally.
+
+IMAGE := "ghcr.io/cznewt/monitor-tools:latest"
+JPATH := "-J vendor/github.com/cznewt/observ-viz -J ."
+
+# list targets
+default:
+    @just --list
+
+# vendor jsonnet deps (jb install -> pulls observ-viz per jsonnetfile.json)
+vendor:
+    docker run --rm -v "$PWD":/work -w /work {{IMAGE}} jb install
+
+# render the Grafana v2 dashboard -> home-assistant.json
+render:
+    docker run --rm -v "$PWD":/work -w /work {{IMAGE}} \
+        jsonnet {{JPATH}} render.jsonnet > home-assistant.json
+    @echo "wrote home-assistant.json"
+
+# render the Prometheus alert rules -> home-assistant-alerts.json
+alerts:
+    docker run --rm -v "$PWD":/work -w /work {{IMAGE}} \
+        jsonnet {{JPATH}} alerts.jsonnet > home-assistant-alerts.json
+    @echo "wrote home-assistant-alerts.json"
+
+# render dashboard + alerts
+build: vendor render alerts
+
+# format all jsonnet in place
+fmt:
+    docker run --rm -v "$PWD":/work -w /work {{IMAGE}} \
+        bash -c "find . -name '*.libsonnet' -o -name '*.jsonnet' | grep -v vendor | xargs jsonnetfmt -i"
+
+# alternative: render through the observ-viz image (observ-viz baked in)
+render-image:
+    docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-viz:latest render render.jsonnet > home-assistant.json
+
+# remove vendored deps + rendered output
+clean:
+    rm -rf vendor home-assistant.json home-assistant-alerts.json

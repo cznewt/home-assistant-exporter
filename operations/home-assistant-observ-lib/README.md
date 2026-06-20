@@ -30,12 +30,31 @@ LQI/RSSI), **device batteries** (remaining %, voltage), and entity availability.
 
 Thresholds and the (static) alert selector are configurable — see `new(config)`.
 
+## Structure
+
+observ-viz renders everything (its own Grafana v2 `gen/`) — there is no grafonnet.
+
+```
+config.libsonnet      defaults
+signals/              hass_* signal definitions (one file per group)
+panels/               panel elements built from signals (one file per group)
+dashboards.libsonnet  board layout (rows of panels)
+alerts.libsonnet      Prometheus alert rules from the same signals
+main.libsonnet        new(config) -> pack.build(signals, panels, dashboards, alerts)
+```
+
 ## Use
 
+Render via the `justfile` (jb + jsonnet come from the monitor-tools image — no
+local install):
+
 ```sh
-jb install                       # pulls observ-viz (see jsonnetfile.json)
-jsonnet -J vendor/github.com/cznewt/observ-viz -J . render.jsonnet > home-assistant.json
+just vendor    # jb install -> vendors observ-viz (see jsonnetfile.json)
+just render    # -> home-assistant.json (Grafana v2 dashboard)
+just alerts    # -> home-assistant-alerts.json (Prometheus rules)
 ```
+
+Or embed it:
 
 ```jsonnet
 local ha = import 'home-assistant-observ-lib/main.libsonnet';
