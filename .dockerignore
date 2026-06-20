@@ -1,6 +1,29 @@
-# ignore everything
-*
-# selectively add specific files/dirs
-!home_assistant_exporter/*
-!requirements.txt
-!entrypoint.sh
+# VCS / editor
+.git
+.gitignore
+.vscode/
+
+# Python caches and build artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.eggs/
+
+# Virtualenvs
+.venv/
+venv/
+env/
+
+# Test / type caches
+.pytest_cache/
+.mypy_cache/
+.coverage
+
+# Docs build output
+docs/_build/
+site/
+
+# Local env files
+.env

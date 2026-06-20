@@ -7,14 +7,12 @@ import asyncio
 import logging
 import os
 import sys
-from yaml import load, dump
 from datetime import datetime
 from aiohttp import web, ClientSession
-from time import sleep
 from aiohttp.client_exceptions import ClientConnectorError
 from home_assistant_exporter.client import HomeAssistantClient
-from home_assistant_exporter.metrics import metric, registry
-from prometheus_client import generate_latest
+from home_assistant_exporter.metrics import metric, registry, clear_metrics
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from hass_client.exceptions import CannotConnect
 
 LOGGER = logging.getLogger(__package__)
@@ -41,7 +39,7 @@ def get_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--hass.url",
         type=str,
-        help="The URL address of target Home Assistant service.",
+        help="Websocket URL of the target Home Assistant (e.g. ws://homeassistant.local:8123/api/websocket).",
         default=os.environ.get("HASS_URL", None),
         dest="hass_url",
     )
@@ -51,12 +49,6 @@ def get_arguments() -> argparse.Namespace:
         help="The long-lived API token of target Home Assistant service.",
         default=os.environ.get("HASS_TOKEN", None),
         dest="hass_token",
-    )
-    parser.add_argument(
-        "--hass.mapping-config",
-        type=str,
-        help="Metric mapping configuration file name.",
-        dest="hass_config",
     )
     parser.add_argument(
         "--web.listen-port",
@@ -87,14 +79,16 @@ async def start_cli() -> None:
                 await connect(args, session)
             except (ClientConnectorError, CannotConnect):
                 LOGGER.warning(
-                    f"Could not connect to Home Asssistant {args.hass_url}. Waiting 5 seconds..."
+                    f"Could not connect to Home Assistant {args.hass_url}. Waiting 5 seconds..."
                 )
-                sleep(5)
+                await asyncio.sleep(5)
 
 
 async def metrics_handler(request):
-    metrics = generate_latest(registry)
-    return web.Response(text=metrics.decode("utf-8"))
+    return web.Response(
+        body=generate_latest(registry),
+        headers={"Content-Type": CONTENT_TYPE_LATEST},
+    )
 
 
 async def device_registry_handler(request):
@@ -103,12 +97,13 @@ async def device_registry_handler(request):
 
 
 async def home(request):
-    page = """
+    metrics_path = request.app["metrics_path"]
+    page = f"""
         <html>
         <head><title>Home Assistant Exporter</title></head>
         <body>
         <h1>Home Assistant Exporter</h1>
-        <p><a href="/metrics">metrics</a></p>
+        <p><a href="{metrics_path}">metrics</a></p>
         </body>
         </html>
     """
@@ -116,18 +111,11 @@ async def home(request):
 
 
 def _get_device_info_labels(device):
-    if device["hw_version"] == None:
-        hw_version = ""
-    else:
-        hw_version = device["hw_version"]
-    if device["sw_version"] == None:
-        sw_version = ""
-    else:
-        sw_version = device["sw_version"]
-    if device["name_by_user"] == None:
-        name = device["name"]
-    else:
-        name = device["name_by_user"]
+    hw_version = device.get("hw_version") or ""
+    sw_version = device.get("sw_version") or ""
+    name = device.get("name_by_user") or device.get("name") or ""
+    manufacturer = device.get("manufacturer") or ""
+    model = device.get("model") or ""
     identifiers = device.get("identifiers", "")
     integration = ""
     identifier = ""
@@ -137,14 +125,14 @@ def _get_device_info_labels(device):
         if len(identifiers) > 1:
             identifier = identifiers[1]
     else:
-        if device["manufacturer"] in ["espressif", "Espressif Inc."]:
+        if manufacturer in ["espressif", "Espressif Inc."]:
             integration = "esphome"
     return {
-        "device_id": identifier if identifier is not None else name,
+        "device_id": identifier if identifier else name,
         "device_name": name,
-        "hass_id": device["id"],
-        "manufacturer": device["manufacturer"],
-        "model": device["model"],
+        "hass_id": device.get("id", ""),
+        "manufacturer": manufacturer,
+        "model": model,
         "sw_version": sw_version,
         "hw_version": hw_version,
         "integration": integration,
@@ -183,7 +171,16 @@ def _get_entity_by_ids(entities, ids):
     return False
 
 
+def _as_float(value):
+    """Best-effort float conversion; returns None for non-numeric states."""
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
 async def init_metrics(hass):
+    clear_metrics()
     for id, area in hass.area_registry.items():
         metric["hass_area_info"].labels(
             area_id=area["area_id"], area_name=area["name"]
@@ -228,7 +225,7 @@ async def init_metrics(hass):
 
     for id, entity in hass.get_all_entities().items():
         if id.split(".")[0] not in ALLOWED_DOMAINS:
-            pass
+            continue
         entity_registry[id] = entity
         if entity.get("device_id", None) in device_registry:
             device_registry[entity["device_id"]]["entities"].append(entity)
@@ -237,14 +234,18 @@ async def init_metrics(hass):
             )
         try:
             labels = _get_entity_info_labels(entity)
-            if entity["state"] in ["unavailable", "unknown"]:
-                metric["hass_entity_info"].labels(**labels).set(0)
-            else:
+            available = entity["state"] not in ["unavailable", "unknown"]
+            metric["hass_entity_available"].labels(entity_id=id).set(
+                1 if available else 0
+            )
+            if available:
                 metric["hass_entity_info"].labels(**labels).set(1)
                 if labels["unit"] != "":
-                    metric["hass_entity_value"].labels(entity_id=id).set(
-                        entity["state"]
-                    )
+                    value = _as_float(entity["state"])
+                    if value is not None:
+                        metric["hass_entity_value"].labels(entity_id=id).set(value)
+            else:
+                metric["hass_entity_info"].labels(**labels).set(0)
 
             metric["hass_entity_last_update"].labels(entity_id=id).set(
                 datetime.fromisoformat(entity["last_updated"]).timestamp()
@@ -267,21 +268,70 @@ async def init_metrics(hass):
             if entity_mac_address:
                 device["labels"]["device_id"] = entity_mac_address["state"]
 
-            entity_ap_essid = _get_entity_by_ids(device["entities"], ["bssid"])
-            entity_ap_bssid = _get_entity_by_ids(device["entities"], ["essid"])
+            entity_ap_bssid = _get_entity_by_ids(device["entities"], ["bssid"])
+            # "bssid" also ends with "ssid", so match the essid via "_ssid".
+            entity_ap_essid = _get_entity_by_ids(device["entities"], ["_ssid"])
             entity_wifi_signal = _get_entity_by_ids(device["entities"], ["wifi_signal"])
+            entity_uptime = _get_entity_by_ids(device["entities"], ["uptime"])
+            entity_ip_address = _get_entity_by_ids(device["entities"], ["ip_address"])
 
-            if entity_mac_address:
-                device["labels"]["device_id"] = entity_mac_address["state"]
+            device_id = device["labels"]["device_id"]
+            device_name = device["labels"]["device_name"]
+
+            metric["hass_esphome_device_info"].labels(
+                device_id=device_id,
+                device_name=device_name,
+                bssid=entity_ap_bssid["state"] if entity_ap_bssid else "",
+                essid=entity_ap_essid["state"] if entity_ap_essid else "",
+            ).set(1)
+
+            if entity_wifi_signal:
+                rssi = _as_float(entity_wifi_signal["state"])
+                if rssi is not None:
+                    metric["hass_esphome_device_rssi"].labels(
+                        device_id=device_id, device_name=device_name
+                    ).set(rssi)
+
+            if entity_uptime:
+                uptime = _as_float(entity_uptime["state"])
+                if uptime is not None:
+                    metric["hass_esphome_device_uptime"].labels(
+                        device_id=device_id, device_name=device_name
+                    ).set(uptime)
+
+            if entity_ip_address and entity_ip_address["state"] not in (
+                "unavailable",
+                "unknown",
+            ):
+                metric["hass_device_ip_address"].labels(
+                    device_id=device_id,
+                    device_name=device_name,
+                    ip_address=entity_ip_address["state"],
+                ).set(1)
 
         entity_battery = _get_entity_by_ids(device["entities"], ["battery"])
-        if entity_battery:
-            # LOGGER.warning(entity_battery)
-            if entity_battery["state"] != "unavailable":
+        if entity_battery and entity_battery["state"] not in ("unavailable", "unknown"):
+            remaining = _as_float(entity_battery["state"])
+            if remaining is not None:
                 metric["hass_device_battery_remaining"].labels(
                     device_id=device["labels"]["device_id"],
                     device_name=device["labels"]["device_name"],
-                ).set(entity_battery["state"])
+                ).set(remaining)
+
+        entity_battery_voltage = _get_entity_by_ids(
+            device["entities"], ["battery_voltage"]
+        )
+        if entity_battery_voltage and entity_battery_voltage["state"] not in (
+            "unavailable",
+            "unknown",
+        ):
+            voltage = _as_float(entity_battery_voltage["state"])
+            if voltage is not None:
+                metric["hass_device_battery_voltage"].labels(
+                    device_id=device["labels"]["device_id"],
+                    device_name=device["labels"]["device_name"],
+                ).set(voltage)
+
         metric["hass_device_info"].labels(**device["labels"]).set(1)
 
 
@@ -315,8 +365,9 @@ def main() -> None:
     """Run main."""
     args = get_arguments()
     app = web.Application()
+    app["metrics_path"] = args.web_path
     app.add_routes([web.get("/", home)])
-    app.add_routes([web.get("/metrics", metrics_handler)])
+    app.add_routes([web.get(args.web_path, metrics_handler)])
     app.add_routes([web.get("/devices", device_registry_handler)])
     loop = asyncio.new_event_loop()
 
