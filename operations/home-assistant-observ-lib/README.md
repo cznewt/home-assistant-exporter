@@ -13,7 +13,22 @@ LQI/RSSI), **device batteries** (remaining %, voltage), and entity availability.
 | Overview | devices, areas, entities, available %, unavailable, stale |
 | Batteries | `hass_device_battery_remaining`, `hass_device_battery_voltage`, low-battery count |
 | ESPHome (Wi-Fi) | `hass_esphome_device_rssi`, `hass_esphome_device_uptime` |
-| Zigbee (ZHA) | `hass_zha_device_rssi`, `hass_zha_device_lqi`, `hass_device_available` |
+| Zigbee (ZHA) | `hass_zha_device_rssi`, `hass_zha_device_lqi`, `hass_zha_mesh_lqi`, `hass_device_available` |
+
+## Alerts
+
+`prometheus.alerts` ships rules built from the same signals (group
+`home-assistant`):
+
+| Alert | Expr | Severity |
+|-------|------|----------|
+| `HassDeviceBatteryLow` / `HassDeviceBatteryCritical` | `hass_device_battery_remaining < 20` / `< 10` | warning / critical |
+| `HassDeviceUnavailable` | `hass_device_available == 0` | warning |
+| `HassEntityStale` | `time() - hass_entity_last_update > 3600` | warning |
+| `HassEsphomeWifiWeak` | `hass_esphome_device_rssi < -80` | warning |
+| `HassZigbeeLinkQualityLow` | `hass_zha_device_lqi < 32` | warning |
+
+Thresholds and the (static) alert selector are configurable — see `new(config)`.
 
 ## Use
 
@@ -27,6 +42,9 @@ local ha = import 'home-assistant-observ-lib/main.libsonnet';
 ha.new({ selector: 'job="home-assistant-exporter"' }).grafana.dashboard.toResource()
 ```
 
-`new(config)` accepts `{ uid, dashboardTitle, datasource, selector, varMetric }`
-and returns the observ-lib bundle (`signals`, `grafana.{elements,layout,dashboard}`,
-`prometheus.alerts`, `asMonitoringMixin()`).
+`new(config)` accepts `{ uid, dashboardTitle, datasource, selector, varMetric,
+alertSelector, lowBatteryThreshold, criticalBatteryThreshold, staleSeconds,
+esphomeRssiLow, zhaLqiLow }` and returns the observ-lib bundle (`signals`,
+`grafana.{elements,layout,dashboard}`, `prometheus.alerts`,
+`asMonitoringMixin()`). Alert rules use `alertSelector` — a *static* selector,
+since Prometheus rules can't reference the `$job` dashboard variable.
