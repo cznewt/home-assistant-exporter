@@ -1,0 +1,64 @@
+name: observ-lib
+
+# Validate that the home-assistant-observ-lib mixin still renders (dashboards +
+# alerts) on every PR that touches it, mirroring the image CI. Runs the same
+# `just build` as local dev (jb install + jsonnet via the monitor-tools image).
+on:
+  pull_request:
+    paths:
+      - operations/home-assistant-observ-lib/**
+      - .github/workflows/observ-lib.yml
+  push:
+    branches-ignore: ["master"]
+    paths:
+      - operations/home-assistant-observ-lib/**
+      - .github/workflows/observ-lib.yml
+
+permissions:
+  contents: read
+  packages: read  # to pull ghcr.io/cznewt/monitor-tools
+
+jobs:
+  render:
+    name: Render mixin
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: operations/home-assistant-observ-lib
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install just
+        uses: extractions/setup-just@v2
+
+      # The justfile renders through the monitor-tools image (jb + jsonnet).
+      # Requires the package to be pullable by GITHUB_TOKEN (public, or grant
+      # this repo access under the package's "Manage Actions access").
+      - name: Log in to ghcr
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: just build (render dashboards + alerts + rules)
+        run: just build
+
+      - name: Summarize
+        run: |
+          {
+            echo '### Rendered mixin'
+            echo '```'
+            ls -la dashboards_out prometheus_alerts.yaml prometheus_rules.yaml
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload rendered artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: home-assistant-observ-lib
+          path: |
+            operations/home-assistant-observ-lib/dashboards_out
+            operations/home-assistant-observ-lib/prometheus_alerts.yaml
+            operations/home-assistant-observ-lib/prometheus_rules.yaml
+          if-no-files-found: error
