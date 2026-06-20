@@ -42,7 +42,9 @@ Home Assistant Exporter
 
 options:
   -h, --help            show this help message and exit
-  --debug               Log with debug level
+  --log.level LOG_LEVEL
+                        Log level: DEBUG, INFO, WARNING or ERROR
+                        (default: INFO, or $LOG_LEVEL).
   --hass.url HASS_URL   Websocket URL of the target Home Assistant
                         (e.g. ws://homeassistant.local:8123/api/websocket).
   --hass.token HASS_TOKEN

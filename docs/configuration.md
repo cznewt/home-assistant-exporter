@@ -9,13 +9,14 @@ Prometheus metrics on `:9878/metrics`.
 | --- | --- |
 | `HASS_URL` | Websocket URL of the target Home Assistant, e.g. `ws://homeassistant.local:8123/api/websocket`. |
 | `HASS_TOKEN` | A Home Assistant [long-lived access token](https://www.home-assistant.io/docs/authentication/#your-account-profile). |
+| `LOG_LEVEL` | Log level: `DEBUG`, `INFO`, `WARNING` or `ERROR` (default: `INFO`). |
 
 ## Command-line flags
 
 Flags take precedence over the environment variables.
 
 ```
---debug                   Log with debug level
+--log.level LEVEL         Log level: DEBUG, INFO, WARNING, ERROR (default: INFO)
 --hass.url HASS_URL       Websocket URL of the target Home Assistant
 --hass.token HASS_TOKEN   Long-lived API token
 --web.listen-port PORT    Port to expose metrics on (default: 9878)

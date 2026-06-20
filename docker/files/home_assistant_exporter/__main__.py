@@ -35,7 +35,16 @@ def get_arguments() -> argparse.Namespace:
     """Get parsed passed in arguments."""
 
     parser = argparse.ArgumentParser(description="Home Assistant Exporter")
-    parser.add_argument("--debug", action="store_true", help="Log with debug level")
+    parser.add_argument(
+        "--log.level",
+        type=str,
+        help="Log level: DEBUG, INFO, WARNING or ERROR (default: INFO, or $LOG_LEVEL).",
+        default=os.environ.get("LOG_LEVEL", "INFO"),
+        dest="log_level",
+    )
+    # Deprecated alias for --log.level=DEBUG (kept so existing callers / the
+    # haos-apps add-on that pass --debug keep working).
+    parser.add_argument("--debug", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument(
         "--hass.url",
         type=str,
@@ -71,7 +80,7 @@ def get_arguments() -> argparse.Namespace:
 async def start_cli() -> None:
     """Run main."""
     args = get_arguments()
-    level = logging.DEBUG if args.debug else logging.INFO
+    level = logging.DEBUG if args.debug else getattr(logging, args.log_level.upper(), logging.INFO)
     logging.basicConfig(level=level)
     async with ClientSession() as session:
         while True:
