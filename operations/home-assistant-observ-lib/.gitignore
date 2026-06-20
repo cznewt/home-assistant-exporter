@@ -1,0 +1,7 @@
+# jsonnet-bundler vendored deps
+/vendor/
+
+# rendered mixin artifacts (just build)
+/dashboards_out/
+/prometheus_alerts.yaml
+/prometheus_rules.yaml
