@@ -43,18 +43,20 @@ signals/              hass_* signal definitions, one file per group
 panels/               panel elements built from signals, one file per group
 dashboards.libsonnet  board layout (rows of panels)
 alerts.libsonnet      Prometheus alert rules from the same signals
+rules.libsonnet       Prometheus recording rules from the same signals
 main.libsonnet        new() + withConfigMixin(config)
 mixin.libsonnet       monitoring-mixin entrypoint (grafanaDashboards / …)
-justfile              jb init/install + render the mixin (Makefile_mixin analogue)
+render-*.jsonnet      manifests the observ-lib image renders
+justfile              render the mixin via the observ-lib image
 ```
 
 ## Use
 
-Render the mixin via the `justfile` (jb + jsonnet from the monitor-tools image —
-nothing installed locally):
+Render the mixin via the `justfile` — the **observ-lib** image (from
+[observ-viz](https://github.com/cznewt/observ-viz)) bakes the library in on the
+jpath, so there's **no `jb`/vendor** and nothing installed locally:
 
 ```sh
-just vendor       # jb install -> vendors observ-viz (see jsonnetfile.json)
 just build        # render dashboards_out/ + prometheus_alerts.yaml + prometheus_rules.yaml
 # or individually: just dashboards | just alerts | just rules
 ```

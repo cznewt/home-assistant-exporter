@@ -19,5 +19,5 @@ local halib = import './main.libsonnet';
     [mixin._halib.config.uid + '.json']: mixin._halib.grafana.dashboard.toSpec(),
   },
   prometheusAlerts+:: { groups: mixin._halib.prometheus.alerts },
-  prometheusRules+:: mixin._halib.prometheus.recordingRules,
+  prometheusRules+:: { groups: mixin._halib.prometheus.recordingRules },
 }
