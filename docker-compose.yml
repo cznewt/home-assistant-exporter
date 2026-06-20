@@ -1,0 +1,13 @@
+services:
+  home-assistant-exporter:
+    build:
+      context: ./docker
+      dockerfile: Dockerfile
+    # image: ghcr.io/cznewt/home-assistant-exporter:latest
+    environment:
+      # The Home Assistant websocket API and a long-lived access token.
+      HASS_URL: ${HASS_URL:-ws://homeassistant.local:8123/api/websocket}
+      HASS_TOKEN: ${HASS_TOKEN:-}
+    ports:
+      - "9878:9878"
+    restart: unless-stopped

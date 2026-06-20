@@ -1,4 +1,4 @@
-from prometheus_client import Gauge, Counter, Info, Enum
+from prometheus_client import Gauge
 from prometheus_client import CollectorRegistry
 
 registry = CollectorRegistry()
@@ -177,3 +177,15 @@ metric = {
         registry=registry,
     ),
 }
+
+
+def clear_metrics():
+    """Reset every label series so each scrape reflects only current state.
+
+    ``init_metrics`` re-runs on every collection cycle and only ever *sets*
+    gauges. Without clearing first, devices and entities that disappear would
+    keep their last reported value forever.
+    """
+    for collector in metric.values():
+        collector.clear()
+

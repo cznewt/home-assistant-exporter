@@ -1,6 +1,0 @@
-# ignore everything
-*
-# selectively add specific files/dirs
-!home_assistant_exporter/*
-!requirements.txt
-!entrypoint.sh
