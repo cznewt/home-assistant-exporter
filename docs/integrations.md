@@ -46,6 +46,14 @@ prometheus.remote_write "default" {
 }
 ```
 
+!!! tip "Ready-made Alloy scenarios"
+    [`cznewt/alloy-resources`](https://github.com/cznewt/alloy-resources) ships
+    drop-in Alloy [scenarios](https://github.com/cznewt/alloy-resources/tree/main/scenarios)
+    (Grafana Cloud, HassOS, Docker, …) with the `prometheus.remote_write` plumbing
+    already wired up — add a `prometheus.scrape` for this exporter to the one that
+    matches your environment (e.g. the
+    [HassOS scenario](https://github.com/cznewt/alloy-resources/tree/main/scenarios/hassos)).
+
 ## Alerting
 
 The metrics are ordinary gauges, so you can alert on them directly:
