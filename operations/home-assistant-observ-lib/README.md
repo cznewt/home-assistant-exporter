@@ -32,38 +32,44 @@ Thresholds and the (static) alert selector are configurable — see `new(config)
 
 ## Structure
 
-observ-viz renders everything (its own Grafana v2 `gen/`) — there is no grafonnet.
+Same shape as grafana's observ-libs (e.g. `windows-observ-lib`), but built on
+observ-viz — its own Grafana v2 `gen/` does all rendering, so there is no
+grafonnet.
 
 ```
-config.libsonnet      defaults
-signals/              hass_* signal definitions (one file per group)
-panels/               panel elements built from signals (one file per group)
+config.libsonnet      inputs + signal wiring (signals+)
+signals/              hass_* signal definitions, one file per group
+  signal.libsonnet      signal factory bound to config
+panels/               panel elements built from signals, one file per group
 dashboards.libsonnet  board layout (rows of panels)
 alerts.libsonnet      Prometheus alert rules from the same signals
-main.libsonnet        new(config) -> pack.build(signals, panels, dashboards, alerts)
+main.libsonnet        new() + withConfigMixin(config)
+mixin.libsonnet       monitoring-mixin entrypoint (grafanaDashboards / …)
+justfile              jb init/install + render the mixin (Makefile_mixin analogue)
 ```
 
 ## Use
 
-Render via the `justfile` (jb + jsonnet come from the monitor-tools image — no
-local install):
+Render the mixin via the `justfile` (jb + jsonnet from the monitor-tools image —
+nothing installed locally):
 
 ```sh
-just vendor    # jb install -> vendors observ-viz (see jsonnetfile.json)
-just render    # -> home-assistant.json (Grafana v2 dashboard)
-just alerts    # -> home-assistant-alerts.json (Prometheus rules)
+just vendor       # jb install -> vendors observ-viz (see jsonnetfile.json)
+just build        # render dashboards_out/ + prometheus_alerts.yaml + prometheus_rules.yaml
+# or individually: just dashboards | just alerts | just rules
 ```
 
-Or embed it:
+Or embed it — `new()` then override config with `withConfigMixin`:
 
 ```jsonnet
 local ha = import 'home-assistant-observ-lib/main.libsonnet';
-ha.new({ selector: 'job="home-assistant-exporter"' }).grafana.dashboard.toResource()
+(ha.new() + ha.withConfigMixin({ selector: 'job="home-assistant-exporter"' }))
+  .grafana.dashboard.toResource()
 ```
 
-`new(config)` accepts `{ uid, dashboardTitle, datasource, selector, varMetric,
-alertSelector, lowBatteryThreshold, criticalBatteryThreshold, staleSeconds,
-esphomeRssiLow, zhaLqiLow }` and returns the observ-lib bundle (`signals`,
-`grafana.{elements,layout,dashboard}`, `prometheus.alerts`,
-`asMonitoringMixin()`). Alert rules use `alertSelector` — a *static* selector,
+Config (`config.libsonnet`) accepts `{ uid, dashboardTitle, datasource, selector,
+varMetric, alertSelector, lowBatteryThreshold, criticalBatteryThreshold,
+staleSeconds, esphomeRssiLow, zhaLqiLow }`. The lib bundle exposes `signals`,
+`grafana.{elements,layout,dashboard}`, `prometheus.alerts` and
+`asMonitoringMixin()`. Alert rules use `alertSelector` — a *static* selector,
 since Prometheus rules can't reference the `$job` dashboard variable.

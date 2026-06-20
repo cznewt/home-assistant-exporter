@@ -1,43 +1,55 @@
-# home-assistant-observ-lib dev tasks.
-# Rendering is done entirely by observ-viz (its own Grafana v2 gen/) — there is
-# no grafonnet. jb + jsonnet come from the monitor-tools image, so nothing needs
-# to be installed locally.
+# Mixin dev tasks for observ-viz libs — a `just` analogue of grafana's
+# Makefile_mixin. `jb init`/`install` then render mixin.libsonnet to Grafana
+# dashboards and Prometheus alerts/rules. jb + jsonnet come from the
+# monitor-tools image, so nothing is installed locally. This file is generic:
+# promote it to any observ-viz lib unchanged.
 
 IMAGE := "ghcr.io/cznewt/monitor-tools:latest"
-JPATH := "-J vendor/github.com/cznewt/observ-viz -J ."
+JPATH := "-J vendor/github.com/cznewt/observ-viz -J vendor -J ."
 
 # list targets
 default:
     @just --list
 
-# vendor jsonnet deps (jb install -> pulls observ-viz per jsonnetfile.json)
+# initialise jsonnetfile.json (jb init) if it does not exist yet
+init:
+    @test -f jsonnetfile.json || docker run --rm -v "$PWD":/work -w /work {{IMAGE}} jb init
+
+# vendor jsonnet deps (jb install)
 vendor:
     docker run --rm -v "$PWD":/work -w /work {{IMAGE}} jb install
 
-# render the Grafana v2 dashboard -> home-assistant.json
-render:
+# render every dashboard from the mixin -> dashboards_out/<uid>.json
+dashboards: vendor
+    @mkdir -p dashboards_out
     docker run --rm -v "$PWD":/work -w /work {{IMAGE}} \
-        jsonnet {{JPATH}} render.jsonnet > home-assistant.json
-    @echo "wrote home-assistant.json"
+        jsonnet {{JPATH}} -m dashboards_out -e '(import "mixin.libsonnet").grafanaDashboards'
 
-# render the Prometheus alert rules -> home-assistant-alerts.json
-alerts:
+# render the Prometheus alerts from the mixin -> prometheus_alerts.yaml
+alerts: vendor
     docker run --rm -v "$PWD":/work -w /work {{IMAGE}} \
-        jsonnet {{JPATH}} alerts.jsonnet > home-assistant-alerts.json
-    @echo "wrote home-assistant-alerts.json"
+        jsonnet {{JPATH}} -S -e 'std.manifestYamlDoc((import "mixin.libsonnet").prometheusAlerts)' \
+        > prometheus_alerts.yaml
 
-# render dashboard + alerts
-build: vendor render alerts
+# render the Prometheus recording rules from the mixin -> prometheus_rules.yaml
+rules: vendor
+    docker run --rm -v "$PWD":/work -w /work {{IMAGE}} \
+        jsonnet {{JPATH}} -S -e 'std.manifestYamlDoc((import "mixin.libsonnet").prometheusRules)' \
+        > prometheus_rules.yaml
+
+# render everything (dashboards + alerts + rules)
+build: dashboards alerts rules
 
 # format all jsonnet in place
 fmt:
     docker run --rm -v "$PWD":/work -w /work {{IMAGE}} \
-        bash -c "find . -name '*.libsonnet' -o -name '*.jsonnet' | grep -v vendor | xargs jsonnetfmt -i"
+        bash -c "find . -path ./vendor -prune -o \( -name '*.libsonnet' -o -name '*.jsonnet' \) -print | xargs -n1 jsonnetfmt -i"
 
-# alternative: render through the observ-viz image (observ-viz baked in)
-render-image:
-    docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-viz:latest render render.jsonnet > home-assistant.json
+# check formatting (CI)
+lint:
+    docker run --rm -v "$PWD":/work -w /work {{IMAGE}} \
+        bash -c "find . -path ./vendor -prune -o \( -name '*.libsonnet' -o -name '*.jsonnet' \) -print | xargs -n1 -I{} sh -c 'jsonnetfmt {} | diff -u {} -'"
 
 # remove vendored deps + rendered output
 clean:
-    rm -rf vendor home-assistant.json home-assistant-alerts.json
+    rm -rf vendor dashboards_out prometheus_alerts.yaml prometheus_rules.yaml

@@ -1,27 +1,49 @@
 // home-assistant-observ-lib — an observ-viz observ-lib for the
-// home-assistant-exporter (hass_* metrics). The interesting bits are wireless
-// device properties (ESPHome Wi-Fi RSSI, ZHA Zigbee LQI/RSSI), device batteries
-// and entity availability. observ-viz renders the Grafana v2 dashboard — there
-// is no grafonnet here.
+// home-assistant-exporter (hass_* metrics). Wireless device properties (ESPHome
+// Wi-Fi RSSI, ZHA Zigbee LQI/RSSI), device batteries and entity availability.
+// observ-viz renders the Grafana v2 dashboard — there is no grafonnet.
 //
 //   local ha = import 'home-assistant-observ-lib/main.libsonnet';
-//   ha.new({ selector: 'job="home-assistant-exporter"' }).grafana.dashboard
-//   ha.new({ alertSelector: 'job="home-assistant-exporter"' }).prometheus.alerts
+//   (ha.new() + ha.withConfigMixin({ selector: 'job="home-assistant-exporter"' }))
+//     .grafana.dashboard
 //
-// Structure:
-//   config.libsonnet      defaults (override via new(config))
+// Structure (grafana observ-lib shape):
+//   config.libsonnet      inputs + signal wiring (signals+)
 //   signals/              hass_* signal definitions, one file per group
 //   panels/               panel elements built from signals, one file per group
 //   dashboards.libsonnet  board layout (rows of panels)
 //   alerts.libsonnet      Prometheus alert rules from the same signals
+//   mixin.libsonnet       monitoring-mixin entrypoint
 local pack = import 'libs/common-lib/pack.libsonnet';
+local config = import './config.libsonnet';
+local panels = import './panels/main.libsonnet';
+local dashboards = import './dashboards.libsonnet';
+local alerts = import './alerts.libsonnet';
 
 {
-  new(config={}):
-    local cfg = (import './config.libsonnet') + config;
-    local signals = (import './signals/main.libsonnet')(cfg);
-    local panels = (import './panels/main.libsonnet')(signals);
-    local groups = (import './dashboards.libsonnet')(panels);
-    local alerts = (import './alerts.libsonnet')(cfg);
-    pack.build(cfg, signals, groups, alerts),
+  new(): {
+    local this = self,
+    config: config,
+    // flatten the grouped config.signals into one map (observ-viz pack wants flat)
+    signals:
+      std.foldl(
+        function(acc, g) acc + this.config.signals[g],
+        std.objectFields(this.config.signals),
+        {},
+      ),
+    local builtPanels = panels(this.signals),
+    local groups = dashboards(builtPanels),
+    local ruleGroups = alerts(this.config),
+    local built = pack.build(this.config, this.signals, groups, ruleGroups),
+    grafana: built.grafana,
+    prometheus: {
+      alerts: built.prometheus.alerts,
+      recordingRules: {},
+    },
+    asMonitoringMixin():: built.asMonitoringMixin(),
+  },
+
+  withConfigMixin(config): {
+    config+: config,
+  },
 }
