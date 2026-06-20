@@ -1,8 +1,30 @@
 site_name: Home Assistant Exporter
 site_description: Prometheus exporter for Home Assistant device, entity, area, ZHA and ESPHome diagnostics.
 
+repo_url: https://github.com/cznewt/home-assistant-exporter
+repo_name: cznewt/home-assistant-exporter
+
 theme:
-  name: readthedocs
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
 
 nav:
   - Home: index.md
@@ -16,3 +38,6 @@ nav:
 markdown_extensions:
   - toc:
       permalink: true
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
